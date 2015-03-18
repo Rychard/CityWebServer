@@ -181,3 +181,10 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+
+# Cities: Skylines Assemblies
+Assembly-CSharp.dll
+ColossalManaged.dll
+ICities.dll
+UnityEngine.dll
+UnityEngine.UI.dll
