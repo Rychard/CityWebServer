@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using CityWebServer.Extensibility;
+using CityWebServer.Helpers;
 using ColossalFramework;
-using ColossalFramework.IO;
 using ICities;
+using JetBrains.Annotations;
 
 namespace CityWebServer
 {
-    public class IntegratedWebServer : ThreadingExtensionBase
+    [UsedImplicitly]
+    internal class IntegratedWebServer : ThreadingExtensionBase
     {
+        private static List<String> _logLines;
         private WebServer _server;
-        private List<String> _logLines;
         private List<IRequestHandler> _requestHandlers;
         private String _cityName = "CityName";
 
@@ -118,92 +119,6 @@ namespace CityWebServer
 
         #endregion Release
 
-        #region Templates
-
-        /// <summary>
-        /// Gets the full path of the directory that contains this assembly.
-        /// </summary>
-        /// <remarks>
-        /// This is currently rigged to work in a specific manner.
-        /// </remarks>
-        private String GetModPath()
-        {
-            // TODO: Find a better way of obtaining this information.
-            String addonRoot = DataLocation.addonsPath;
-            String modPath = Path.Combine(addonRoot, "Mods");
-            String assemblyPath = Path.Combine(modPath, "CityWebServer_CityWebServer");
-            return assemblyPath;
-        }
-
-        /// <summary>
-        /// Gets the full content of a template.
-        /// </summary>
-        private String GetTemplate(String template)
-        {
-            // Templates seem like something we shouldn't handle internally.
-            // Perhaps we should force request handlers to implement their own templating if they so desire, and maintain a more "API" approach within the core.
-            String modPath = GetModPath();
-            String templatePath = Path.Combine(modPath, "Templates");
-            String specifiedTemplatePath = String.Format("{0}{1}{2}.html", templatePath, Path.DirectorySeparatorChar, template);
-
-            if (File.Exists(specifiedTemplatePath))
-            {
-                String templateContents = File.ReadAllText(specifiedTemplatePath);
-                return templateContents;
-            }
-
-            // All templates must at least have a #PAGEBODY# token.
-            // If we can't find the specified template, just return a string that contains only that.
-            return "#PAGEBODY#";
-        }
-
-        /// <summary>
-        /// Retrieves the template with the specified name, and returns the contents of the template after replacing instances of the dictionary keys from <paramref name="tokenReplacements"/> with their coorresponding values.
-        /// </summary>
-        /// <param name="template">The name of the template to populate.</param>
-        /// <param name="tokenReplacements">A dictionary containing key/value pairs for replacement.</param>
-        /// <remarks>
-        /// The value of <paramref name="template"/> should not include the file extension.
-        /// </remarks>
-        private String PopulateTemplate(String template, Dictionary<String, String> tokenReplacements)
-        {
-            try
-            {
-                String templateContents = GetTemplate(template);
-                foreach (var tokenReplacement in tokenReplacements)
-                {
-                    templateContents = templateContents.Replace(tokenReplacement.Key, tokenReplacement.Value);
-                }
-                return templateContents;
-            }
-            catch (Exception ex)
-            {
-                LogMessage(ex.ToString());
-                return tokenReplacements["#PAGEBODY#"];
-            }
-        }
-
-        /// <summary>
-        /// Gets a dictionary that contains standard replacement tokens using the specified values.
-        /// </summary>
-        private Dictionary<String, String> GetTokenReplacements(String cityName, String title, String body)
-        {
-            // TODO: Order the request handlers by priority and name?  Whatever the decision is, there needs to be some defined order here.
-            String nav = String.Join(Environment.NewLine, _requestHandlers.Select(obj => String.Format("<li><a href='{0}'>{1}</a></li>", obj.MainPath, obj.Name)).ToArray());
-
-            return new Dictionary<string, string>
-            {
-                { "#PAGETITLE#", title },
-                { "#NAV#", nav},
-                { "#CSS#", ""}, // Moved directly into the template.
-                { "#PAGEBODY#", body},
-                { "#CITYNAME#", cityName},
-                { "#JS#", ""}, // Moved directly into the template.
-            };
-        }
-
-        #endregion Templates
-       
         /// <summary>
         /// Handles the specified request.
         /// </summary>
@@ -235,8 +150,8 @@ namespace CityWebServer
                 catch (Exception ex)
                 {
                     String errorBody = String.Format("<h1>An error has occurred!</h1><pre>{0}</pre>", ex);
-                    var tokens = GetTokenReplacements(_cityName, "Error", errorBody);
-                    var template = PopulateTemplate("index", tokens);
+                    var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", _requestHandlers, errorBody);
+                    var template = TemplateHelper.PopulateTemplate("index", tokens);
 
                     byte[] buf = Encoding.UTF8.GetBytes(template);
                     response.ContentType = "text/html";
@@ -248,8 +163,8 @@ namespace CityWebServer
 
             // If the value is null, there must not be a request handler capable of servicing this request.
             const string defaultResponse = "<h1>No handlers exist to service this request.</h1>";
-            var defaultTokens = GetTokenReplacements(_cityName, "Missing Handler", defaultResponse);
-            var defaultTemplate = PopulateTemplate("index", defaultTokens);
+            var defaultTokens = TemplateHelper.GetTokenReplacements(_cityName, "Missing Handler", _requestHandlers, defaultResponse);
+            var defaultTemplate = TemplateHelper.PopulateTemplate("index", defaultTokens);
 
             byte[] buf2 = Encoding.UTF8.GetBytes(defaultTemplate);
             response.ContentType = "text/html";
@@ -354,8 +269,8 @@ namespace CityWebServer
                 }
 
                 String body = String.Format("<h1>Cities: Skylines - Integrated Web Server</h1><ul>{0}</ul>", String.Join("", links.ToArray()));
-                var tokens = GetTokenReplacements(_cityName, "Home", body);
-                var template = PopulateTemplate("index", tokens);
+                var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Home", _requestHandlers, body);
+                var template = TemplateHelper.PopulateTemplate("index", tokens);
 
                 byte[] buf = Encoding.UTF8.GetBytes(template);
                 response.ContentType = "text/html";
@@ -376,8 +291,8 @@ namespace CityWebServer
             {
                 {
                     String body = String.Format("<h1>Server Log</h1><pre>{0}</pre>", String.Join("", _logLines.ToArray()));
-                    var tokens = GetTokenReplacements(_cityName, "Log", body);
-                    var template = PopulateTemplate("index", tokens);
+                    var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Log", _requestHandlers, body);
+                    var template = TemplateHelper.PopulateTemplate("index", tokens);
 
                     byte[] buf = Encoding.UTF8.GetBytes(template);
                     response.ContentType = "text/html";
@@ -397,7 +312,7 @@ namespace CityWebServer
         /// <summary>
         /// Adds a timestamp to the specified message, and appends it to the internal log.
         /// </summary>
-        private void LogMessage(String message)
+        public static void LogMessage(String message)
         {
             var dt = DateTime.Now;
             String line = String.Format("[{0} {1}] {2}{3}", dt.ToShortDateString(), dt.ToShortTimeString(), message, Environment.NewLine);

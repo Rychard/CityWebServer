@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 
 namespace CityWebServer.Models
 {
-    public class CityInfoModel
+    public class CityInfo
     {
         public int DistrictID { get; set; }
         public String DistrictName { get; set; }

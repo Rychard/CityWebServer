@@ -71,7 +71,7 @@ namespace CityWebServer.RequestHandlers
             return policyValues;
         }
 
-        private CityInfoModel GetCityInfo(int districtID)
+        private CityInfo GetCityInfo(int districtID)
         {
             var districtManager = Singleton<DistrictManager>.instance;
             var district = GetDistrict(districtID);
@@ -80,17 +80,18 @@ namespace CityWebServer.RequestHandlers
 
             String districtName = String.Empty;
 
-            try
+            if (districtID == 0)
             {
-                districtName = districtManager.GetDistrictName(districtID);
+                // The district with ID 0 is always the global district.  
+                // It receives an auto-generated name by default, but the game always displays the city name instead.
+                districtName = "City";
             }
-            catch (Exception ex)
+            else
             {
-                //return ex.ToString();
+                districtName = districtManager.GetDistrictName(districtID);   
             }
-            
 
-            var model = new CityInfoModel
+            var model = new CityInfo
             {
                 DistrictID = districtID,
                 DistrictName = districtName,
@@ -156,7 +157,7 @@ namespace CityWebServer.RequestHandlers
         {
             var districtIDs = GetDistricts();
 
-            List<CityInfoModel> models = new List<CityInfoModel>();
+            List<CityInfo> models = new List<CityInfo>();
 
             foreach (var districtID in districtIDs)
             {
@@ -164,7 +165,7 @@ namespace CityWebServer.RequestHandlers
                 models.Add(cityInfo);
             }
 
-            XmlSerializer serializer = new XmlSerializer(typeof(CityInfoModel[]));
+            XmlSerializer serializer = new XmlSerializer(typeof(CityInfo[]));
             using (StringWriter sw = new StringWriter())
             {
                 serializer.Serialize(sw, models.ToArray());
