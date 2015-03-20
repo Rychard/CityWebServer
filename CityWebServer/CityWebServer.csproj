@@ -41,6 +41,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -55,9 +58,10 @@
   <ItemGroup>
     <Compile Include="Helpers\EnumExtensions.cs" />
     <Compile Include="Models\ChirperMessage.cs" />
+    <Compile Include="Models\CityInfoModel.cs" />
     <Compile Include="RequestHandlers\BudgetRequestHandler.cs" />
     <Compile Include="RequestHandlers\MessageRequestHandler.cs" />
-    <Compile Include="RequestHandlers\OverviewRequestHandler.cs" />
+    <Compile Include="RequestHandlers\CityInfoRequestHandler.cs" />
     <Compile Include="RequestHandlers\TestHandler.cs" />
     <Compile Include="Retrievers\ChirpRetriever.cs" />
     <Compile Include="UserModInfo.cs" />

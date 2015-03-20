@@ -42,8 +42,8 @@ namespace CityWebServer.Extensibility
         Boolean ShouldHandle(HttpListenerRequest request);
 
         /// <summary>
-        /// Handles the specified request.  The returned value is written to the response stream.
+        /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        String Handle(HttpListenerRequest request);
+        void Handle(HttpListenerRequest request, HttpListenerResponse response);
     }
 }

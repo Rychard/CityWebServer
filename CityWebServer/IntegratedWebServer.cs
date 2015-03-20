@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using CityWebServer.Extensibility;
 using ColossalFramework;
 using ColossalFramework.IO;
@@ -210,7 +211,7 @@ namespace CityWebServer
         /// Defers execution to an appropriate request handler, except for requests to the reserved endpoints: <c>~/</c> and <c>~/Log</c>.<br />
         /// Returns a default error message if an appropriate request handler can not be found.
         /// </remarks>
-        private string HandleRequest(HttpListenerRequest request)
+        private void HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             LogMessage(String.Format("{0} {1}", request.HttpMethod, request.RawUrl));
 
@@ -219,9 +220,8 @@ namespace CityWebServer
 
             // There are two reserved endpoints: "/" and "/Log".
             // These take precedence over all other request handlers.
-            String response;
-            if (ServiceRoot(request, out response)) { return response; }
-            if (ServiceLog(request, out response)) { return response; }
+            if (ServiceRoot(request, response)) { return; }
+            if (ServiceLog(request, response)) { return; }
 
             // Get the request handler associated with the current request.
             var handler = _requestHandlers.FirstOrDefault(obj => obj.ShouldHandle(request));
@@ -229,17 +229,20 @@ namespace CityWebServer
             {
                 try
                 {
-                    String body = handler.Handle(request);
-                    var tokens = GetTokenReplacements(_cityName, handler.Name, body);
-                    var template = PopulateTemplate("index", tokens);
-                    return template;
+                    handler.Handle(request, response);
+                    return;
                 }
                 catch (Exception ex)
                 {
                     String errorBody = String.Format("<h1>An error has occurred!</h1><pre>{0}</pre>", ex);
                     var tokens = GetTokenReplacements(_cityName, "Error", errorBody);
                     var template = PopulateTemplate("index", tokens);
-                    return template;
+
+                    byte[] buf = Encoding.UTF8.GetBytes(template);
+                    response.ContentType = "text/html";
+                    response.ContentLength64 = buf.Length;
+                    response.OutputStream.Write(buf, 0, buf.Length);
+                    return;
                 }
             }
 
@@ -247,7 +250,11 @@ namespace CityWebServer
             const string defaultResponse = "<h1>No handlers exist to service this request.</h1>";
             var defaultTokens = GetTokenReplacements(_cityName, "Missing Handler", defaultResponse);
             var defaultTemplate = PopulateTemplate("index", defaultTokens);
-            return defaultTemplate;
+
+            byte[] buf2 = Encoding.UTF8.GetBytes(defaultTemplate);
+            response.ContentType = "text/html";
+            response.ContentLength64 = buf2.Length;
+            response.OutputStream.Write(buf2, 0, buf2.Length);
         }
 
         /// <summary>
@@ -336,7 +343,7 @@ namespace CityWebServer
         /// <summary>
         /// Services requests to <c>~/</c>
         /// </summary>
-        private Boolean ServiceRoot(HttpListenerRequest request, out String response)
+        private Boolean ServiceRoot(HttpListenerRequest request, HttpListenerResponse response)
         {
             if (request.Url.AbsolutePath.ToLower() == "/")
             {
@@ -349,17 +356,21 @@ namespace CityWebServer
                 String body = String.Format("<h1>Cities: Skylines - Integrated Web Server</h1><ul>{0}</ul>", String.Join("", links.ToArray()));
                 var tokens = GetTokenReplacements(_cityName, "Home", body);
                 var template = PopulateTemplate("index", tokens);
-                response = template;
+
+                byte[] buf = Encoding.UTF8.GetBytes(template);
+                response.ContentType = "text/html";
+                response.ContentLength64 = buf.Length;
+                response.OutputStream.Write(buf, 0, buf.Length);
+
                 return true;
             }
-            response = null;
             return false;
         }
 
         /// <summary>
         /// Services requests to <c>~/Log</c>
         /// </summary>
-        private Boolean ServiceLog(HttpListenerRequest request, out String response)
+        private Boolean ServiceLog(HttpListenerRequest request, HttpListenerResponse response)
         {
             if (request.Url.AbsolutePath.ToLower() == "/log")
             {
@@ -367,11 +378,15 @@ namespace CityWebServer
                     String body = String.Format("<h1>Server Log</h1><pre>{0}</pre>", String.Join("", _logLines.ToArray()));
                     var tokens = GetTokenReplacements(_cityName, "Log", body);
                     var template = PopulateTemplate("index", tokens);
-                    response = template;
+
+                    byte[] buf = Encoding.UTF8.GetBytes(template);
+                    response.ContentType = "text/html";
+                    response.ContentLength64 = buf.Length;
+                    response.OutputStream.Write(buf, 0, buf.Length);
+
                     return true;
                 }
             }
-            response = null;
             return false;
         }
 
@@ -387,6 +402,7 @@ namespace CityWebServer
             var dt = DateTime.Now;
             String line = String.Format("[{0} {1}] {2}{3}", dt.ToShortDateString(), dt.ToShortTimeString(), message, Environment.NewLine);
             _logLines.Add(line);
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, line);
         }
 
         /// <summary>

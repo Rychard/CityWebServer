@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using CityWebServer.Extensibility;
 
 namespace SampleWebServerExtension
@@ -36,9 +37,14 @@ namespace SampleWebServerExtension
             return (request.Url.AbsolutePath.Equals("/Sample", StringComparison.OrdinalIgnoreCase));
         }
 
-        public string Handle(HttpListenerRequest request)
+        public void Handle(HttpListenerRequest request, HttpListenerResponse response)
         {
-            return "This is a sample page!";
+            const String content = "This is a sample page!";
+
+            byte[] buf = Encoding.UTF8.GetBytes(content);
+            response.ContentType = "text/plain";
+            response.ContentLength64 = buf.Length;
+            response.OutputStream.Write(buf, 0, buf.Length);
         }
     }
 }

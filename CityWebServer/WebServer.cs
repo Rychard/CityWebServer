@@ -19,9 +19,9 @@ namespace CityWebServer
         }
 
         private readonly HttpListener _listener = new HttpListener();
-        private readonly Func<HttpListenerRequest, string> _responderMethod;
+        private readonly Action<HttpListenerRequest, HttpListenerResponse> _responderMethod;
 
-        public WebServer(string[] prefixes, Func<HttpListenerRequest, string> method)
+        public WebServer(string[] prefixes, Action<HttpListenerRequest, HttpListenerResponse> method)
         {
             if (!HttpListener.IsSupported) { throw new NotSupportedException("This wouldn't happen if you upgraded your operating system more than once a decade."); }
 
@@ -41,7 +41,7 @@ namespace CityWebServer
             _listener.Start();
         }
 
-        public WebServer(Func<HttpListenerRequest, string> method, params string[] prefixes) : this(prefixes, method) 
+        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params string[] prefixes) : this(prefixes, method) 
         {
         }
 
@@ -70,10 +70,10 @@ namespace CityWebServer
             {
                 if (ctx != null)
                 {
-                    string rstr = _responderMethod(ctx.Request);
-                    byte[] buf = Encoding.UTF8.GetBytes(rstr);
-                    ctx.Response.ContentLength64 = buf.Length;
-                    ctx.Response.OutputStream.Write(buf, 0, buf.Length);
+                    _responderMethod(ctx.Request, ctx.Response);
+                    //byte[] buf = Encoding.UTF8.GetBytes(rstr);
+                    //ctx.Response.ContentLength64 = buf.Length;
+                    //ctx.Response.OutputStream.Write(buf, 0, buf.Length);
                 }
             }
             catch {} // Suppress any exceptions.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using CityWebServer.Extensibility;
 
 namespace CityWebServer.RequestHandlers
@@ -46,10 +47,14 @@ namespace CityWebServer.RequestHandlers
             return (request.Url.AbsolutePath.Equals("/Test", StringComparison.OrdinalIgnoreCase));
         }
 
-        public string Handle(HttpListenerRequest request)
+        public void Handle(HttpListenerRequest request, HttpListenerResponse response)
         {
-            // Returns an always changing value, useful for testing.
-            return DateTime.Now.ToFileTime().ToString();
+            String content = DateTime.Now.ToFileTime().ToString();
+
+            byte[] buf = Encoding.UTF8.GetBytes(content);
+            response.ContentType = "text/plain";
+            response.ContentLength64 = buf.Length;
+            response.OutputStream.Write(buf, 0, buf.Length);
         }
     }
 }
