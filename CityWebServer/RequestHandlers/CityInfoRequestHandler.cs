@@ -5,6 +5,7 @@ using System.Net;
 using CityWebServer.Extensibility;
 using CityWebServer.Helpers;
 using CityWebServer.Models;
+using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
 {
@@ -74,15 +75,28 @@ namespace CityWebServer.RequestHandlers
         {
             var districtIDs = GetDistrictsFromRequest(request);
 
+            DistrictInfo globalDistrictInfo = null;
             List<DistrictInfo> districtInfoList = new List<DistrictInfo>();
             foreach (var districtID in districtIDs)
             {
                 var districtInfo = DistrictInfo.GetDistrictInfo(districtID);
-                districtInfoList.Add(districtInfo);
+                if (districtID == 0)
+                {
+                    globalDistrictInfo = districtInfo;
+                }
+                else
+                {
+                    districtInfoList.Add(districtInfo);    
+                }
             }
 
+            var simulationManager = Singleton<SimulationManager>.instance;
+            
             var cityInfo = new CityInfo
             {
+                Name = simulationManager.m_metaData.m_CityName,
+                Time = simulationManager.m_currentGameTime.Date,
+                GlobalDistrict = globalDistrictInfo,
                 Districts = districtInfoList.ToArray(),
             };
 
