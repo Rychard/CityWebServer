@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using CityWebServer.Extensibility;
-using ColossalFramework;
 using ColossalFramework.IO;
 
 namespace CityWebServer.Helpers

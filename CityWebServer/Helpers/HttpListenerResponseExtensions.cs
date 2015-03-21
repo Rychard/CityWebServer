@@ -19,6 +19,5 @@ namespace CityWebServer.Helpers
             response.ContentLength64 = buf.Length;
             response.OutputStream.Write(buf, 0, buf.Length);
         }
-
     }
 }

@@ -5,12 +5,14 @@ namespace CityWebServer.Models
     public class Economy
     {
         public IncomeExpense[] IncomesAndExpenses { get; set; }
+
         public TaxRate[] TaxRates { get; set; }
     }
 
     public class TaxRate
     {
         public String GroupName { get; set; }
+
         public int Rate { get; set; }
 
         // Tax Rate: Low-Density Residential
@@ -24,7 +26,9 @@ namespace CityWebServer.Models
     public class IncomeExpense
     {
         public String Group { get; set; }
+
         public string SubGroup { get; set; }
+
         public Double Amount { get; set; }
 
         // Tax Income: Low-Density Residential

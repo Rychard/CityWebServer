@@ -8,8 +8,6 @@ namespace CityWebServer.Models
         public DistrictInfo[] Districts { get; set; }
     }
 
-    
-
     public class PopulationGroup
     {
         [XmlAttribute("Name")]
@@ -18,7 +16,9 @@ namespace CityWebServer.Models
         [XmlAttribute("Amount")]
         public int Amount { get; set; }
 
-        public PopulationGroup() { }
+        public PopulationGroup()
+        {
+        }
 
         public PopulationGroup(String name, int amount)
         {
@@ -26,5 +26,4 @@ namespace CityWebServer.Models
             Amount = amount;
         }
     }
-
 }

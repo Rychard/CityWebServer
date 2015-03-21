@@ -8,6 +8,7 @@ namespace CityWebServer.RequestHandlers
     public class TestHandler : IRequestHandler, ILogAppender
     {
         public event EventHandler<LogAppenderEventArgs> LogMessage;
+
         private void OnLogMessage(String message)
         {
             var handler = LogMessage;

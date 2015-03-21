@@ -58,7 +58,7 @@ namespace CityWebServer.RequestHandlers
             economyManager.GetIncomeAndExpenses(new ItemClass(), out income, out expenses);
 
             Decimal formattedIncome = Math.Round(((Decimal)income / 100), 2);
-            Decimal formattedExpenses = Math.Round(((Decimal)expenses/ 100), 2);
+            Decimal formattedExpenses = Math.Round(((Decimal)expenses / 100), 2);
 
             var content = String.Format("Income: {0:C}{2}Expenses: {1:C}", formattedIncome, formattedExpenses, Environment.NewLine);
 

@@ -19,7 +19,7 @@ namespace CityWebServer.Helpers
 
         public static PopulationGroup[] GetPopulation(this District district)
         {
-            PopulationGroup[] ageGroups = 
+            PopulationGroup[] ageGroups =
             {
                 new PopulationGroup("Children", district.GetChildrenCount()),
                 new PopulationGroup("Teen", district.GetTeenCount()),
@@ -29,7 +29,6 @@ namespace CityWebServer.Helpers
             };
             return ageGroups;
         }
-
 
         public static int GetChildrenCount(this District district)
         {

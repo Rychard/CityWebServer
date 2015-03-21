@@ -191,7 +191,7 @@ namespace CityWebServer
                     try
                     {
                         handlerInstance = (IRequestHandler)Activator.CreateInstance(handler);
-                            
+
                         // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
                         exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
                     }
@@ -199,7 +199,7 @@ namespace CityWebServer
                     {
                         LogMessage(ex.ToString());
                     }
-                        
+
                     if (exists)
                     {
                         // TODO: Allow duplicate registrations to occur; previous registration is removed and replaced with a new one?
@@ -209,7 +209,7 @@ namespace CityWebServer
                     {
                         // TODO: Add event handler for any handler that implements the ILogAppender interface.
                         _requestHandlers.Add(handlerInstance);
-                        LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));    
+                        LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));
                     }
                 }
             }
@@ -221,7 +221,7 @@ namespace CityWebServer
         private List<Type> FindHandlers()
         {
             List<Type> handlers = new List<Type>();
-            var requestHandlerType = typeof (IRequestHandler);
+            var requestHandlerType = typeof(IRequestHandler);
 
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies)
@@ -252,7 +252,6 @@ namespace CityWebServer
             }
             return handlers;
         }
-
 
         #region Reserved Endpoint Handlers
 
@@ -306,8 +305,8 @@ namespace CityWebServer
             return false;
         }
 
-        #endregion
-        
+        #endregion Reserved Endpoint Handlers
+
         #region Logging
 
         /// <summary>
@@ -334,6 +333,6 @@ namespace CityWebServer
             LogMessage(args.LogLine);
         }
 
-        #endregion
+        #endregion Logging
     }
 }
