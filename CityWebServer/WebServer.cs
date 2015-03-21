@@ -71,6 +71,12 @@ namespace CityWebServer
             {
                 if (ctx != null)
                 {
+                    var request = ctx.Request;
+                    var response = ctx.Response;
+                    
+                    // Allow accessing pages from pages hosted from another local web-server, such as IIS, for instance.
+                    response.AddHeader("Access-Control-Allow-Origin", "http://localhost");
+
                     _responderMethod(ctx.Request, ctx.Response);
 
                     //byte[] buf = Encoding.UTF8.GetBytes(rstr);
