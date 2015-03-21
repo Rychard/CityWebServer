@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Xml.Serialization;
@@ -165,17 +166,24 @@ namespace CityWebServer.RequestHandlers
                 models.Add(cityInfo);
             }
 
-            XmlSerializer serializer = new XmlSerializer(typeof(CityInfo[]));
-            using (StringWriter sw = new StringWriter())
-            {
-                serializer.Serialize(sw, models.ToArray());
-                String serializedData = sw.ToString();
+            String serializedData = String.Empty;
 
-                byte[] buf = Encoding.UTF8.GetBytes(serializedData);
-                response.ContentType = "text/xml";
-                response.ContentLength64 = buf.Length;
-                response.OutputStream.Write(buf, 0, buf.Length);
-            }
+            var writer = new JsonFx.Json.JsonWriter();
+            serializedData = writer.Write(models);
+
+            //serializedData = JsonConvert.SerializeObject(models.First());
+
+            //XmlSerializer serializer = new XmlSerializer(typeof(CityInfo[]));
+            //using (StringWriter sw = new StringWriter())
+            //{
+            //    serializer.Serialize(sw, models.ToArray());
+            //    serializedData = sw.ToString();
+            //}
+
+            byte[] buf = Encoding.UTF8.GetBytes(serializedData);
+            response.ContentType = "text/json";
+            response.ContentLength64 = buf.Length;
+            response.OutputStream.Write(buf, 0, buf.Length);
         }
     }
 }
