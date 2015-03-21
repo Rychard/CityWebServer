@@ -68,7 +68,9 @@
     <Compile Include="Helpers\TemplateHelper.cs" />
     <Compile Include="Models\ChirperMessage.cs" />
     <Compile Include="Models\CityInfo.cs" />
+    <Compile Include="Models\DistrictInfo.cs" />
     <Compile Include="Models\Economy.cs" />
+    <Compile Include="Models\PolicyInfo.cs" />
     <Compile Include="RequestHandlers\BudgetRequestHandler.cs" />
     <Compile Include="RequestHandlers\MessageRequestHandler.cs" />
     <Compile Include="RequestHandlers\CityInfoRequestHandler.cs" />
