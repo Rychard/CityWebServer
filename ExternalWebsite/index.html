@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Cities: Skylines - Test</title>
+    <link href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css' rel='stylesheet'>
+    <style type="text/css">
+        body { padding-top: 50px; }
+    </style>
+    
+</head>
+<body>
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/"><span data-bind="text: Name"></span></a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/Log">Log</a></li>
+                    <li><a href='/Budget'>Budget</a></li>
+                    <li><a href='/Messages'>Chirper Messages</a></li>
+                    <li><a href='/CityInfo'>City Info</a></li>
+                    <li><a href='/Sample'>Sample</a></li>
+                    <li><a href='/Test'>Test</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Cities: Skylines - Integrated Web Server</h1>
+        
+        <div id="chart"></div>
+        
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>District ID</th>
+                    <th>Name</th>
+                    <th>Population</th>
+                    <th>Households (Max)</th>
+                    <th>Jobs (Max)</th>
+                    <th>Maximum Jobs</th>
+                    <th>Weekly Tourists</th>
+                    <th>Average Land Value</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: Districts">
+                <tr>
+                    <td data-bind="text: DistrictID"></td>
+                    <td data-bind="text: DistrictName"></td>
+                    <td data-bind="text: TotalPopulationCount"></td>
+                    <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
+                    <td data-bind="text: CurrentJobs"></td>
+                    <td data-bind="text: AvailableJobs"></td>
+                    <td data-bind="text: WeeklyTouristVisits"></td>
+                    <td data-bind="text: AverageLandValue"></td>
+                </tr>
+            </tbody>
+        </table>        
+    </div>
+    <script src='./jquery-2.1.3.min.js'></script>
+    <script src='./bootstrap.min.js'></script>
+    <script src='./knockout-3.3.0.js'></script>
+    <script src='./knockout.mapping-latest.js'></script>
+    <script src="./highcharts.js"></script>
+    <script src="./viewmodels.js"></script>
+    <script src="./script.js"></script>
+    
+    <script type="text/javascript">
+    
+    var endpoint = "http://localhost:8080/CityInfo";
+    var viewModel;
+    var chart;
+    var initialized = false;
+    var lastDate;
+    
+    $.getJSON(endpoint, function(data) 
+    { 
+        viewModel = ko.mapping.fromJS(data);
+    })
+    
+    
+    // Update the data once every second.
+    window.setInterval(function() {
+        $.getJSON(endpoint, function(data) 
+        {
+            if(initialized) 
+            {
+                ko.mapping.fromJS(data, viewModel);
+                if(lastDate != viewModel.Time())
+                {
+                    updateChart(viewModel, chart);
+                    lastDate = viewModel.Time();
+                }
+                else
+                {
+                    console.log("Same Date: " + lastDate);
+                }
+            }
+            else 
+            {
+                initialized = true;
+                viewModel = ko.mapping.fromJS(data);
+                ko.applyBindings(viewModel);
+                chart = initializeChart(viewModel);
+            }
+        })
+    }, 1000);
+    </script>
+    
+    
+</body>
+</html>
