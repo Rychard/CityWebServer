@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Xml.Serialization;
 using CityWebServer.Extensibility;
 using CityWebServer.Models;
@@ -11,6 +12,7 @@ namespace CityWebServer.RequestHandlers
     public class MessageRequestHandler : IRequestHandler, ILogAppender
     {
         public event EventHandler<LogAppenderEventArgs> LogMessage;
+
         private void OnLogMessage(String message)
         {
             var handler = LogMessage;
@@ -52,14 +54,18 @@ namespace CityWebServer.RequestHandlers
             return (request.Url.AbsolutePath.Equals("/Messages", StringComparison.OrdinalIgnoreCase));
         }
 
-        public string Handle(HttpListenerRequest request)
+        public void Handle(HttpListenerRequest request, HttpListenerResponse response)
         {
             // TODO: Customize request handling.
             XmlSerializer serializer = new XmlSerializer(typeof(ChirperMessage[]));
             var messages = _chirpRetriever.Messages;
             StringWriter sw = new StringWriter();
             serializer.Serialize(sw, messages);
-            return "<pre>" + sw.ToString() + "</pre>";
+
+            byte[] buf = Encoding.UTF8.GetBytes(sw.ToString());
+            response.ContentType = "text/xml";
+            response.ContentLength64 = buf.Length;
+            response.OutputStream.Write(buf, 0, buf.Length);
         }
 
         public MessageRequestHandler()

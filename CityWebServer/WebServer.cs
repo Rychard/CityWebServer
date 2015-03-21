@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Text;
 using System.Threading;
 using CityWebServer.Extensibility;
 
@@ -9,6 +8,7 @@ namespace CityWebServer
     public class WebServer : ILogAppender
     {
         public event EventHandler<LogAppenderEventArgs> LogMessage;
+
         private void OnLogMessage(String message)
         {
             var handler = LogMessage;
@@ -19,13 +19,13 @@ namespace CityWebServer
         }
 
         private readonly HttpListener _listener = new HttpListener();
-        private readonly Func<HttpListenerRequest, string> _responderMethod;
+        private readonly Action<HttpListenerRequest, HttpListenerResponse> _responderMethod;
 
-        public WebServer(string[] prefixes, Func<HttpListenerRequest, string> method)
+        public WebServer(string[] prefixes, Action<HttpListenerRequest, HttpListenerResponse> method)
         {
             if (!HttpListener.IsSupported) { throw new NotSupportedException("This wouldn't happen if you upgraded your operating system more than once a decade."); }
 
-            // URI prefixes are required, for example 
+            // URI prefixes are required, for example
             // "http://localhost:8080/index/".
             if (prefixes == null || prefixes.Length == 0) { throw new ArgumentException("prefixes"); }
 
@@ -41,7 +41,8 @@ namespace CityWebServer
             _listener.Start();
         }
 
-        public WebServer(Func<HttpListenerRequest, string> method, params string[] prefixes) : this(prefixes, method) 
+        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params string[] prefixes)
+            : this(prefixes, method)
         {
         }
 
@@ -70,13 +71,20 @@ namespace CityWebServer
             {
                 if (ctx != null)
                 {
-                    string rstr = _responderMethod(ctx.Request);
-                    byte[] buf = Encoding.UTF8.GetBytes(rstr);
-                    ctx.Response.ContentLength64 = buf.Length;
-                    ctx.Response.OutputStream.Write(buf, 0, buf.Length);
+                    var request = ctx.Request;
+                    var response = ctx.Response;
+                    
+                    // Allow accessing pages from pages hosted from another local web-server, such as IIS, for instance.
+                    response.AddHeader("Access-Control-Allow-Origin", "http://localhost");
+
+                    _responderMethod(ctx.Request, ctx.Response);
+
+                    //byte[] buf = Encoding.UTF8.GetBytes(rstr);
+                    //ctx.Response.ContentLength64 = buf.Length;
+                    //ctx.Response.OutputStream.Write(buf, 0, buf.Length);
                 }
             }
-            catch {} // Suppress any exceptions.
+            catch { } // Suppress any exceptions.
             finally
             {
                 if (ctx != null)

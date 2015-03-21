@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CityWebServer.Extensibility;
 using CityWebServer.Models;
 using ColossalFramework;
@@ -12,6 +11,7 @@ namespace CityWebServer.Retrievers
     public class ChirpRetriever : ILogAppender
     {
         public event EventHandler<LogAppenderEventArgs> LogMessage;
+
         private void OnLogMessage(String message)
         {
             var handler = LogMessage;
@@ -20,7 +20,6 @@ namespace CityWebServer.Retrievers
                 handler(this, new LogAppenderEventArgs(message));
             }
         }
-
 
         private readonly MessageManager _manager;
         private List<ChirperMessage> _messages;
