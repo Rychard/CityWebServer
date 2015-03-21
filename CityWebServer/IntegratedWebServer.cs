@@ -12,7 +12,7 @@ using JetBrains.Annotations;
 namespace CityWebServer
 {
     [UsedImplicitly]
-    internal class IntegratedWebServer : ThreadingExtensionBase
+    public class IntegratedWebServer : ThreadingExtensionBase
     {
         private static List<String> _logLines;
         private WebServer _server;
