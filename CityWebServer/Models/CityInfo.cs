@@ -5,6 +5,11 @@ namespace CityWebServer.Models
 {
     public class CityInfo
     {
+        public DistrictInfo[] Districts { get; set; }
+    }
+
+    public class DistrictInfo
+    {
         public int DistrictID { get; set; }
         public String DistrictName { get; set; }
         public PopulationGroup[] PopulationData { get; set; }

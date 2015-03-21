@@ -61,7 +61,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\DistrictExtensions.cs" />
     <Compile Include="Helpers\EnumExtensions.cs" />
+    <Compile Include="Helpers\HttpListenerResponseExtensions.cs" />
+    <Compile Include="Helpers\NameValueCollectionExtensions.cs" />
     <Compile Include="Helpers\TemplateHelper.cs" />
     <Compile Include="Models\ChirperMessage.cs" />
     <Compile Include="Models\CityInfo.cs" />

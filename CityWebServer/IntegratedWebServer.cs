@@ -6,6 +6,7 @@ using System.Text;
 using CityWebServer.Extensibility;
 using CityWebServer.Helpers;
 using ColossalFramework;
+using ColossalFramework.Plugins;
 using ICities;
 using JetBrains.Annotations;
 
@@ -312,12 +313,17 @@ namespace CityWebServer
         /// <summary>
         /// Adds a timestamp to the specified message, and appends it to the internal log.
         /// </summary>
-        public static void LogMessage(String message)
+        public static void LogMessage(String message, String label = null, Boolean showInDebugPanel = false)
         {
             var dt = DateTime.Now;
-            String line = String.Format("[{0} {1}] {2}{3}", dt.ToShortDateString(), dt.ToShortTimeString(), message, Environment.NewLine);
+            String time = String.Format("{0} {1}", dt.ToShortDateString(), dt.ToShortTimeString());
+            String messageWithLabel = String.IsNullOrEmpty(label) ? message : String.Format("{0}: {1}", label, message);
+            String line = String.Format("[{0}] {1}{2}", time, messageWithLabel, Environment.NewLine);
             _logLines.Add(line);
-            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, line);
+            if (showInDebugPanel)
+            {
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, line);
+            }
         }
 
         /// <summary>

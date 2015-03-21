@@ -72,7 +72,7 @@ namespace CityWebServer.RequestHandlers
             return policyValues;
         }
 
-        private CityInfo GetCityInfo(int districtID)
+        private DistrictInfo GetDistrictInfo(int districtID)
         {
             var districtManager = Singleton<DistrictManager>.instance;
             var district = GetDistrict(districtID);
@@ -92,7 +92,7 @@ namespace CityWebServer.RequestHandlers
                 districtName = districtManager.GetDistrictName(districtID);   
             }
 
-            var model = new CityInfo
+            var model = new DistrictInfo
             {
                 DistrictID = districtID,
                 DistrictName = districtName,
@@ -124,66 +124,79 @@ namespace CityWebServer.RequestHandlers
         private PopulationGroup[] GetPopulationGroups(int? districtID = null)
         {
             var district = GetDistrict(districtID);
-            List<PopulationGroup> ageGroups = new List<PopulationGroup>
-            {
-                new PopulationGroup("Children", (int) district.m_childData.m_finalCount),
-                new PopulationGroup("Teen", (int) district.m_teenData.m_finalCount),
-                new PopulationGroup("YoungAdult", (int) district.m_youngData.m_finalCount),
-                new PopulationGroup("Adult", (int) district.m_adultData.m_finalCount),
-                new PopulationGroup("Senior", (int) district.m_seniorData.m_finalCount)
-            };
-            return ageGroups.ToArray();
+            return district.GetPopulation();
         }
 
         private IEnumerable<int> GetDistricts()
         {
             var districtManager = Singleton<DistrictManager>.instance;
-            const int count = 128; // This is the value used in Assembly-CSharp, so I presume that's the maximum number of districts allowed.
+
+            // This is the value used in Assembly-CSharp, so I presume that's the maximum number of districts allowed.
+            const int count = 128; 
+
             var districts = districtManager.m_districts.m_buffer;
 
             for (int i = 0; i < count; i++)
             {
-                var district = districts[i];
-
-                // Get the flags on the district, to ensure we don't access garbage memory if it doesn't have a flag for District.Flags.Created
-                // Again, this was found in Assembly-CSharp
-                Boolean alive = ((district.m_flags & District.Flags.Created) == District.Flags.Created);
-                if (!alive) { continue; }
-
+                if (!districts[i].IsAlive()) { continue; }
                 yield return i;
             }
         }
 
         public void Handle(HttpListenerRequest request, HttpListenerResponse response)
         {
-            var districtIDs = GetDistricts();
-
-            List<CityInfo> models = new List<CityInfo>();
-
-            foreach (var districtID in districtIDs)
+            if (request.QueryString.HasKey("showList"))
             {
-                var cityInfo = GetCityInfo(districtID);
-                models.Add(cityInfo);
+                HandleDistrictList(response);
+                return;
             }
 
-            String serializedData = String.Empty;
+            HandleDistrict(request, response);
+        }
 
-            var writer = new JsonFx.Json.JsonWriter();
-            serializedData = writer.Write(models);
+        private void HandleDistrictList(HttpListenerResponse response)
+        {
+            var districtIDs = GetDistricts().ToArray();
+            response.WriteJson(districtIDs);
+        }
 
-            //serializedData = JsonConvert.SerializeObject(models.First());
+        private void HandleDistrict(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            var districtIDs = GetDistrictsFromRequest(request);
 
-            //XmlSerializer serializer = new XmlSerializer(typeof(CityInfo[]));
-            //using (StringWriter sw = new StringWriter())
-            //{
-            //    serializer.Serialize(sw, models.ToArray());
-            //    serializedData = sw.ToString();
-            //}
+            List<DistrictInfo> districtInfoList = new List<DistrictInfo>();
+            foreach (var districtID in districtIDs)
+            {
+                var districtInfo = this.GetDistrictInfo(districtID);
+                districtInfoList.Add(districtInfo);
+            }
 
-            byte[] buf = Encoding.UTF8.GetBytes(serializedData);
-            response.ContentType = "text/json";
-            response.ContentLength64 = buf.Length;
-            response.OutputStream.Write(buf, 0, buf.Length);
+            var cityInfo = new CityInfo
+            {
+                Districts = districtInfoList.ToArray(),
+            };
+
+            response.WriteJson(cityInfo);
+        }
+
+        private IEnumerable<int> GetDistrictsFromRequest(HttpListenerRequest request)
+        {
+            IEnumerable<int> districtIDs;
+            if (request.QueryString.HasKey("districtID"))
+            {
+                List<int> districtIDList = new List<int>();
+                var districtID = request.QueryString.GetInteger("districtID");
+                if (districtID.HasValue)
+                {
+                    districtIDList.Add(districtID.Value);
+                }
+                districtIDs = districtIDList;
+            }
+            else
+            {
+                districtIDs = GetDistricts();
+            }
+            return districtIDs;
         }
     }
 }
