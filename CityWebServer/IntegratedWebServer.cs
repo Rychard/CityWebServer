@@ -125,6 +125,8 @@ namespace CityWebServer
             // TODO: Unregister from events (i.e. ILogAppender.LogMessage)
             _requestHandlers.Clear();
 
+            Configuration.SaveSettings();
+
             base.OnReleased();
         }
 
