@@ -81,6 +81,7 @@
     <Compile Include="WebServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IntegratedWebServer.cs" />
+    <Compile Include="WebsiteButton.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="wwwroot\bootstrap.min.js">

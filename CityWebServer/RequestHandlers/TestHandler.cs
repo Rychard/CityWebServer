@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using CityWebServer.Extensibility;
 using CityWebServer.Helpers;
 using ColossalFramework;
 using ColossalFramework.Plugins;
+using ColossalFramework.UI;
+using UnityEngine;
 
 namespace CityWebServer.RequestHandlers
 {
@@ -55,13 +58,29 @@ namespace CityWebServer.RequestHandlers
         public void Handle(HttpListenerRequest request, HttpListenerResponse response)
         {
             List<String> s = new List<string>();
-            s.Add(TemplateHelper.GetModPath());
-            var plugins = PluginManager.instance.GetPluginsInfo();
 
-            foreach (var pluginInfo in plugins)
+            var uis = GameObject.FindObjectsOfType<UIComponent>();
+
+            foreach (var ui in uis)
             {
-                s.Add(pluginInfo.modPath);
+                s.Add(ui.name);
             }
+
+            s.Sort();
+            s = s.Distinct().ToList();
+
+
+
+            //Dump();
+
+            
+            //s.Add(TemplateHelper.GetModPath());
+            //var plugins = PluginManager.instance.GetPluginsInfo();
+
+            //foreach (var pluginInfo in plugins)
+            //{
+            //    s.Add(pluginInfo.modPath);
+            //}
 
             response.WriteJson(s);
 
@@ -71,6 +90,32 @@ namespace CityWebServer.RequestHandlers
             //response.ContentType = "text/plain";
             //response.ContentLength64 = buf.Length;
             //response.OutputStream.Write(buf, 0, buf.Length);
+        }
+
+        void Dump()
+        {
+            System.Collections.Generic.List<UITextureAtlas.SpriteInfo> spritelist = UIView.GetAView().defaultAtlas.sprites;
+            foreach (UITextureAtlas.SpriteInfo sprite in spritelist)
+            {
+                try
+                {
+                    byte[] pngbytes = sprite.texture.EncodeToPNG();
+                    String filename = this.MakeValidFileName(sprite.name);
+                    System.IO.File.WriteAllBytes("D:\\sprites\\" + filename + ".png", pngbytes);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+        }
+
+        // http://stackoverflow.com/a/847251
+        public string MakeValidFileName(string name)
+        {
+            string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
+            string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
+
+            return System.Text.RegularExpressions.Regex.Replace(name, invalidRegStr, "_");
         }
     }
 }
