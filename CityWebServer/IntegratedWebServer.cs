@@ -17,6 +17,7 @@ namespace CityWebServer
     [UsedImplicitly]
     public class IntegratedWebServer : ThreadingExtensionBase
     {
+        private const String WebServerPortKey = "webServerPort";
         private static List<String> _logLines;
         private static readonly Object LockObject = new Object();
 
@@ -44,6 +45,8 @@ namespace CityWebServer
             "UnityEngine",
             "UnityEngine.UI",
         };
+
+        public static String Endpoint { get; private set; }
 
         /// <summary>
         /// Gets the full path to the directory where static pages are served from.
@@ -104,7 +107,22 @@ namespace CityWebServer
 
             // I'm not sure how I feel about making the port registration configurable.
             // Honestly, it sort of defeats the purpose, since other mods could potentially expect it to exist on a specific port.
-            WebServer ws = new WebServer(HandleRequest, "http://localhost:8080/");
+
+            int port = 8080;
+            if (Configuration.HasSetting(WebServerPortKey))
+            {
+                port = Configuration.GetInt(WebServerPortKey);
+            }
+            else
+            {
+                Configuration.SetInt(WebServerPortKey, port);
+                Configuration.SaveSettings();
+            }
+
+            String endpoint = String.Format("http://localhost:{0}/", port);
+            Endpoint = endpoint;
+
+            WebServer ws = new WebServer(HandleRequest, endpoint);
             _server = ws;
             _server.LogMessage += ServerOnLogMessage;
             _server.Run();
@@ -144,7 +162,7 @@ namespace CityWebServer
 
         #endregion Release
 
-        /// <summary>
+        /// <summary>;
         /// Handles the specified request.
         /// </summary>
         /// <remarks>

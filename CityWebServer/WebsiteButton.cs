@@ -119,11 +119,21 @@ namespace CityWebServer
 
         private void OnBrowserButtonClick(UIComponent component, UIMouseEventParameter args)
         {
-            // Accept clicks only when shift isn't pressed.
-            if (!Input.GetKey(KeyCode.LeftShift))
+            if (Input.GetKey(KeyCode.LeftControl))
             {
-                // If this wasn't a move operation, then run the click event.
-                Process.Start("http://localhost:8080/index.html");    
+                // If the left control key is pressed, open the folder where the configuration file is located.
+                var filePath = Configuration.GetSettingsFilePath();
+                var directory = System.IO.Path.GetDirectoryName(filePath);
+                if (!String.IsNullOrEmpty(directory) && System.IO.Directory.Exists(directory))
+                {
+                    Process.Start(directory);    
+                }
+            } 
+            else if (!Input.GetKey(KeyCode.LeftShift))
+            {
+                // Accept clicks only when shift isn't pressed.
+                var endpoint = String.Format("{0}index.html", IntegratedWebServer.Endpoint);
+                Process.Start(endpoint);
             }
         }
     }

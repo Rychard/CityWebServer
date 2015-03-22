@@ -24,7 +24,7 @@ namespace CityWebServer.Helpers
             _isLoaded = true;
         }
 
-        private static String GetSettingsFilePath()
+        public static String GetSettingsFilePath()
         {
             var localApplicationDataRoot = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var vendorRoot = System.IO.Path.Combine(localApplicationDataRoot, "Colossal Order");
