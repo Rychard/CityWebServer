@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -23,20 +23,14 @@
                 <ul class="nav navbar-nav">
                     <li><a href="/">Home</a></li>
                     <li><a href="/Log">Log</a></li>
-                    <li><a href='/Budget'>Budget</a></li>
-                    <li><a href='/Messages'>Chirper Messages</a></li>
-                    <li><a href='/CityInfo'>City Info</a></li>
-                    <li><a href='/Sample'>Sample</a></li>
-                    <li><a href='/Test'>Test</a></li>
+                    <!-- TODO: Dynamically populate this with links to other handlers.  -->
                 </ul>
             </div>
         </div>
     </nav>
     <div class="container">
         <h1>Cities: Skylines - Integrated Web Server</h1>
-        
         <div id="chart"></div>
-        
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -67,7 +61,6 @@
     <script src='./knockout-3.3.0.js'></script>
     <script src='./knockout.mapping-latest.js'></script>
     <script src="./highcharts.js"></script>
-    <script src="./viewmodels.js"></script>
     <script src="./script.js"></script>
     
     <script type="text/javascript">
@@ -77,41 +70,32 @@
     var chart;
     var initialized = false;
     var lastDate;
-    
-    $.getJSON(endpoint, function(data) 
-    { 
-        viewModel = ko.mapping.fromJS(data);
-    })
-    
+
+    //$.getJSON(endpoint, function (data)
+    //{
+    //    viewModel = ko.mapping.fromJS(data);
+    //});
     
     // Update the data once every second.
-    window.setInterval(function() {
-        $.getJSON(endpoint, function(data) 
-        {
-            if(initialized) 
-            {
+    window.setInterval(function ()
+    {
+        $.getJSON(endpoint, function(data) {
+            if (initialized) {
                 ko.mapping.fromJS(data, viewModel);
-                if(lastDate != viewModel.Time())
-                {
+                if (lastDate !== viewModel.Time()) {
                     updateChart(viewModel, chart);
                     lastDate = viewModel.Time();
-                }
-                else
-                {
+                } else {
                     console.log("Same Date: " + lastDate);
                 }
-            }
-            else 
-            {
+            } else {
                 initialized = true;
                 viewModel = ko.mapping.fromJS(data);
                 ko.applyBindings(viewModel);
                 chart = initializeChart(viewModel);
             }
-        })
-    }, 1000);
+        });
+    }, 2000); // Every two seconds.
     </script>
-    
-    
 </body>
 </html>
