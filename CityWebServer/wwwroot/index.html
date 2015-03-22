@@ -43,17 +43,31 @@
                     <th>Average Land Value</th>
                 </tr>
             </thead>
-            <tbody data-bind="foreach: Districts">
-                <tr>
-                    <td data-bind="text: DistrictID"></td>
-                    <td data-bind="text: DistrictName"></td>
-                    <td data-bind="text: TotalPopulationCount"></td>
-                    <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
-                    <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>)</td>
-                    <td data-bind="text: WeeklyTouristVisits"></td>
-                    <td data-bind="text: AverageLandValue"></td>
-                </tr>
+            <tbody>
+
+            <!-- ko foreach: Districts -->
+            <tr>
+                <td data-bind="text: DistrictID"></td>
+                <td data-bind="text: DistrictName"></td>
+                <td data-bind="text: TotalPopulationCount"></td>
+                <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
+                <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>)</td>
+                <td data-bind="text: WeeklyTouristVisits"></td>
+                <td data-bind="text: AverageLandValue"></td>
+            </tr>
+            <!-- /ko -->
             </tbody>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td>Total</td>
+                    <td data-bind="text: GlobalDistrict.TotalPopulationCount"></td>
+                    <td><span data-bind="text: GlobalDistrict.CurrentHouseholds"></span> (<span data-bind="text: GlobalDistrict.AvailableHouseholds"></span>)</td>
+                    <td><span data-bind="text: GlobalDistrict.CurrentJobs"></span> (<span data-bind="text: GlobalDistrict.AvailableJobs"></span>)</td>
+                    <td data-bind="text: GlobalDistrict.WeeklyTouristVisits"></td>
+                    <td data-bind="text: GlobalDistrict.AverageLandValue"></td>
+                </tr>
+            </tfoot>
         </table>        
     </div>
     <script src='./jquery-2.1.3.min.js'></script>
