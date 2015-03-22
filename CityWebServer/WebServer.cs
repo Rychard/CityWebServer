@@ -25,7 +25,7 @@ namespace CityWebServer
         {
             if (!HttpListener.IsSupported) { throw new NotSupportedException("This wouldn't happen if you upgraded your operating system more than once a decade."); }
 
-            // URI prefixes are required, for example
+            // URI prefixes are required, for example:
             // "http://localhost:8080/index/".
             if (prefixes == null || prefixes.Length == 0) { throw new ArgumentException("prefixes"); }
 
@@ -41,14 +41,13 @@ namespace CityWebServer
             _listener.Start();
         }
 
-        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params string[] prefixes)
-            : this(prefixes, method)
+        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params string[] prefixes) : this(prefixes, method)
         {
         }
 
         public void Run()
         {
-            ThreadPool.QueueUserWorkItem((o) =>
+            ThreadPool.QueueUserWorkItem(o =>
             {
                 try
                 {
@@ -57,10 +56,7 @@ namespace CityWebServer
                         ThreadPool.QueueUserWorkItem(RequestHandlerCallback, _listener.GetContext());
                     }
                 }
-                catch (Exception ex)
-                {
-                    OnLogMessage(ex.ToString());
-                }
+                catch { } // Suppress exceptions.
             });
         }
 
@@ -77,11 +73,8 @@ namespace CityWebServer
                     // Allow accessing pages from pages hosted from another local web-server, such as IIS, for instance.
                     response.AddHeader("Access-Control-Allow-Origin", "http://localhost");
 
-                    _responderMethod(ctx.Request, ctx.Response);
-
-                    //byte[] buf = Encoding.UTF8.GetBytes(rstr);
-                    //ctx.Response.ContentLength64 = buf.Length;
-                    //ctx.Response.OutputStream.Write(buf, 0, buf.Length);
+                    _responderMethod(request, response);    
+                    
                 }
             }
             catch { } // Suppress any exceptions.

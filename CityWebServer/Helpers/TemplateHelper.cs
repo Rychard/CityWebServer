@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CityWebServer.Extensibility;
+using ColossalFramework;
 using ColossalFramework.IO;
+using ColossalFramework.Plugins;
 
 namespace CityWebServer.Helpers
 {
@@ -17,11 +19,22 @@ namespace CityWebServer.Helpers
         /// </remarks>
         public static String GetModPath()
         {
-            // TODO: Find a better way of obtaining this information.
-            String addonRoot = DataLocation.addonsPath;
-            String modPath = Path.Combine(addonRoot, "Mods");
-            String assemblyPath = Path.Combine(modPath, "CityWebServer_CityWebServer");
-            return assemblyPath;
+            var modPaths = PluginManager.instance.GetPluginsInfo().Select(obj => obj.modPath);
+
+            foreach (var path in modPaths)
+            {
+                var indexPath = Path.Combine(path, "index.html");
+                if (File.Exists(indexPath))
+                {
+                    return indexPath;
+                }
+            }
+            return null;
+            //// TODO: Find a better way of obtaining this information.
+            //String addonRoot = DataLocation.addonsPath;
+            //String modPath = Path.Combine(addonRoot, "Mods");
+            //String assemblyPath = Path.Combine(modPath, "CityWebServer_CityWebServer");
+            //return assemblyPath;
         }
 
         /// <summary>
@@ -32,7 +45,7 @@ namespace CityWebServer.Helpers
             // Templates seem like something we shouldn't handle internally.
             // Perhaps we should force request handlers to implement their own templating if they so desire, and maintain a more "API" approach within the core.
             String modPath = GetModPath();
-            String templatePath = Path.Combine(modPath, "Templates");
+            String templatePath = Path.Combine(modPath, "wwwroot");
             String specifiedTemplatePath = String.Format("{0}{1}{2}.html", templatePath, Path.DirectorySeparatorChar, template);
 
             if (File.Exists(specifiedTemplatePath))

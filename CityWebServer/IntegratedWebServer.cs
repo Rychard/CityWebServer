@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using CityWebServer.Extensibility;
 using CityWebServer.Helpers;
 using ColossalFramework;
@@ -16,6 +18,8 @@ namespace CityWebServer
     public class IntegratedWebServer : ThreadingExtensionBase
     {
         private static List<String> _logLines;
+        private static readonly Object LockObject = new Object();
+
         private WebServer _server;
         private List<IRequestHandler> _requestHandlers;
         private String _cityName = "CityName";
@@ -40,6 +44,25 @@ namespace CityWebServer
             "UnityEngine",
             "UnityEngine.UI",
         };
+
+        /// <summary>
+        /// Gets the full path to the directory where static pages are served from.
+        /// </summary>
+        public static String GetWebRoot()
+        {
+            var modPaths = PluginManager.instance.GetPluginsInfo().Select(obj => obj.modPath);
+            foreach (var path in modPaths)
+            {
+                var testPath = Path.Combine(path, "wwwroot");
+                
+                if (Directory.Exists(testPath))
+                {
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, testPath);    
+                    return testPath;
+                }
+            }
+            return null;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IntegratedWebServer"/> class.
@@ -158,19 +181,48 @@ namespace CityWebServer
                     response.ContentType = "text/html";
                     response.ContentLength64 = buf.Length;
                     response.OutputStream.Write(buf, 0, buf.Length);
-                    return;
                 }
             }
 
-            // If the value is null, there must not be a request handler capable of servicing this request.
-            const string defaultResponse = "<h1>No handlers exist to service this request.</h1>";
-            var defaultTokens = TemplateHelper.GetTokenReplacements(_cityName, "Missing Handler", _requestHandlers, defaultResponse);
-            var defaultTemplate = TemplateHelper.PopulateTemplate("index", defaultTokens);
+            var wwwroot = GetWebRoot();
+            
+            // At this point, we can guarantee that we don't need any game data, so we can safely start a new thread to perform the remaining tasks.
+            ServiceFileRequest(wwwroot, request, response);
+        }
 
-            byte[] buf2 = Encoding.UTF8.GetBytes(defaultTemplate);
-            response.ContentType = "text/html";
-            response.ContentLength64 = buf2.Length;
-            response.OutputStream.Write(buf2, 0, buf2.Length);
+        private static void ServiceFileRequest(string wwwroot, HttpListenerRequest request, HttpListenerResponse response)
+        {
+            var relativePath = request.Url.AbsolutePath.Substring(1);
+            relativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
+            var absolutePath = Path.Combine(wwwroot, relativePath);
+
+            if (File.Exists(absolutePath))
+            {
+                var extension = Path.GetExtension(absolutePath);
+                response.ContentType = ApacheMimeTypes.Apache.GetMime(extension);
+                response.StatusCode = 200; // HTTP 200 - SUCCESS
+
+                // Open file, read bytes into buffer and write them to the output stream.
+                using (FileStream fileReader = File.OpenRead(absolutePath))
+                {
+                    byte[] buffer = new byte[4096];
+                    int read;
+                    while ((read = fileReader.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        response.OutputStream.Write(buffer, 0, read);
+                    }
+                }
+            }
+            else
+            {
+                response.StatusCode = 404;
+                String body = String.Format("No resource is available at the specified filepath: {0}", absolutePath);
+
+                byte[] body404 = Encoding.UTF8.GetBytes(body);
+                response.ContentType = "text/plain";
+                response.ContentLength64 = body404.Length;
+                response.OutputStream.Write(body404, 0, body404.Length);
+            }
         }
 
         /// <summary>

@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using CityWebServer.Extensibility;
+using CityWebServer.Helpers;
+using ColossalFramework;
+using ColossalFramework.Plugins;
 
 namespace CityWebServer.RequestHandlers
 {
@@ -50,12 +54,23 @@ namespace CityWebServer.RequestHandlers
 
         public void Handle(HttpListenerRequest request, HttpListenerResponse response)
         {
-            String content = DateTime.Now.ToFileTime().ToString();
+            List<String> s = new List<string>();
+            s.Add(TemplateHelper.GetModPath());
+            var plugins = PluginManager.instance.GetPluginsInfo();
 
-            byte[] buf = Encoding.UTF8.GetBytes(content);
-            response.ContentType = "text/plain";
-            response.ContentLength64 = buf.Length;
-            response.OutputStream.Write(buf, 0, buf.Length);
+            foreach (var pluginInfo in plugins)
+            {
+                s.Add(pluginInfo.modPath);
+            }
+
+            response.WriteJson(s);
+
+            //String content = DateTime.Now.ToFileTime().ToString();
+
+            //byte[] buf = Encoding.UTF8.GetBytes(content);
+            //response.ContentType = "text/plain";
+            //response.ContentLength64 = buf.Length;
+            //response.OutputStream.Write(buf, 0, buf.Length);
         }
     }
 }
