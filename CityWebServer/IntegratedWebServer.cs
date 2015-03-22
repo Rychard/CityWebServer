@@ -57,7 +57,6 @@ namespace CityWebServer
                 
                 if (Directory.Exists(testPath))
                 {
-                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, testPath);    
                     return testPath;
                 }
             }

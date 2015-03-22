@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using ColossalFramework.Plugins;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
@@ -16,6 +15,7 @@ namespace CityWebServer
     /// </remarks>
     public class WebsiteButton : LoadingExtensionBase
     {
+        private UIDragHandle _browserButtonDragHandle;
         private UIButton _browserButton;
         private UILabel _browserButtonLabel;
 
@@ -25,13 +25,19 @@ namespace CityWebServer
             var uiView = UnityEngine.Object.FindObjectOfType<UIView>();
 
             var button = uiView.AddUIComponent(typeof(UIButton));
-
             _browserButton = button as UIButton;
 
             // The object should *never* be null.
             // We call this a "sanity check".
             if (_browserButton == null) { return; }
+            
+            // Give it a name so we can find it later (if we need to)
+            _browserButton.name = "browserButton";
 
+            // Create a drag handler and attach it to our button.
+            _browserButtonDragHandle = button.AddUIComponent<UIDragHandle>();
+            _browserButtonDragHandle.target = _browserButton;
+            
             _browserButton.width = 36;
             _browserButton.height = 36;
             _browserButton.pressedBgSprite = "OptionBasePressed";
@@ -49,9 +55,6 @@ namespace CityWebServer
             var y = 10;
             _browserButton.relativePosition = new Vector2(x, y);
             
-            // Listen for click events.
-            _browserButton.eventClick += OnBrowserButtonClick;
-
             var labelObject = new GameObject();
             labelObject.transform.parent = uiView.transform;
 
@@ -59,11 +62,24 @@ namespace CityWebServer
             _browserButtonLabel.textColor = new Color32(255, 255, 255, 255);
             _browserButtonLabel.transformPosition = new Vector3(1.15f, 0.90f);
             _browserButtonLabel.Hide();
+
+            RegisterEvents();
         }
 
-        private void OnBrowserButtonClick(UIComponent component, UIMouseEventParameter param)
+        private void RegisterEvents()
         {
-            Process.Start("http://localhost:8080/index.html");
+            // Accept button clicks.
+            _browserButton.eventClick += OnBrowserButtonClick;
+        }
+
+        private void OnBrowserButtonClick(UIComponent component, UIMouseEventParameter args)
+        {
+            // Accept clicks only when shift isn't pressed.
+            if (!Input.GetKey(KeyCode.LeftShift))
+            {
+                // If this wasn't a move operation, then run the click event.
+                Process.Start("http://localhost:8080/index.html");    
+            }
         }
     }
 }

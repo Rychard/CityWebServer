@@ -14,9 +14,6 @@ namespace CityWebServer.Helpers
         /// <summary>
         /// Gets the full path of the directory that contains this assembly.
         /// </summary>
-        /// <remarks>
-        /// This is currently rigged to work in a specific manner.
-        /// </remarks>
         public static String GetModPath()
         {
             var modPaths = PluginManager.instance.GetPluginsInfo().Select(obj => obj.modPath);
@@ -30,11 +27,6 @@ namespace CityWebServer.Helpers
                 }
             }
             return null;
-            //// TODO: Find a better way of obtaining this information.
-            //String addonRoot = DataLocation.addonsPath;
-            //String modPath = Path.Combine(addonRoot, "Mods");
-            //String assemblyPath = Path.Combine(modPath, "CityWebServer_CityWebServer");
-            //return assemblyPath;
         }
 
         /// <summary>
