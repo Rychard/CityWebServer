@@ -37,6 +37,8 @@
                     <th>District ID</th>
                     <th>Name</th>
                     <th>Population</th>
+                    <th>Buildings</th>
+                    <th>Vehicles</th>
                     <th>Households (Max)</th>
                     <th>Jobs (Max)</th>
                     <th>Weekly Tourists</th>
@@ -50,6 +52,8 @@
                 <td data-bind="text: DistrictID"></td>
                 <td data-bind="text: DistrictName"></td>
                 <td data-bind="text: TotalPopulationCount"></td>
+                <td data-bind="text: TotalBuildingCount"></td>
+                <td data-bind="text: TotalVehicleCount"></td>
                 <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
                 <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>)</td>
                 <td data-bind="text: WeeklyTouristVisits"></td>
@@ -62,6 +66,8 @@
                     <td></td>
                     <td>Total</td>
                     <td data-bind="text: GlobalDistrict.TotalPopulationCount"></td>
+                    <td data-bind="text: GlobalDistrict.TotalBuildingCount"></td>
+                    <td data-bind="text: GlobalDistrict.TotalVehicleCount"></td>
                     <td><span data-bind="text: GlobalDistrict.CurrentHouseholds"></span> (<span data-bind="text: GlobalDistrict.AvailableHouseholds"></span>)</td>
                     <td><span data-bind="text: GlobalDistrict.CurrentJobs"></span> (<span data-bind="text: GlobalDistrict.AvailableJobs"></span>)</td>
                     <td data-bind="text: GlobalDistrict.WeeklyTouristVisits"></td>

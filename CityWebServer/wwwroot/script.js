@@ -24,6 +24,31 @@ function initializeChart() {
     return c;
 }
 
+function deleteUnusedSeries(chart, seriesArray)
+{
+    // seriesArray is an array that contains only the NAMES of the series that were updated this tick.
+
+    //for (var j = 0; j < chart.series.length; j++) {
+    //    var series = chart.series[j];
+    //    var isUsed = false;
+    //    for (var i = 0; i < seriesArray.length; i++) {
+    //        var usedSeriesName = seriesArray[i];
+    //        if (series.name == usedSeriesName) {
+    //            isUsed = true;
+    //        }
+    //    }
+
+    //    if (!isUsed) {
+    //        //console.log("Removing: " + chart.series[j].name);
+    //        chart.series[j].remove();
+    //        j = -1;
+    //    }
+
+
+        
+    //}
+}
+
 function addOrUpdateSeries(theChart, seriesName, value, valueName) 
 {
     var series;
@@ -43,7 +68,7 @@ function addOrUpdateSeries(theChart, seriesName, value, valueName)
     
     if(!matchFound)
     {
-        console.log("Adding series: " + seriesName);
+        //console.log("Adding series: " + seriesName);
         var seriesOptions = { 
             id: seriesName, 
             name: seriesName, 
@@ -58,8 +83,9 @@ function addOrUpdateSeries(theChart, seriesName, value, valueName)
     }    
 }
 
-function updateChart(vm, chart) 
+function updateChart(vm, chart)
 {
+    var updatedSeries = [];
     var districts = vm.Districts();
     for(var i = 0; i < districts.length; i++) 
     {
@@ -69,6 +95,8 @@ function updateChart(vm, chart)
         var seriesName = districtName + " - Population";
         var population = district.TotalPopulationCount();
         addOrUpdateSeries(chart, seriesName, population, vm.Time());
+        updatedSeries.push(seriesName);
+        deleteUnusedSeries(chart, updatedSeries);
     }
     chart.redraw();
 }

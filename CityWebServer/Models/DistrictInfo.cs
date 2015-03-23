@@ -16,6 +16,10 @@ namespace CityWebServer.Models
 
         public int TotalPopulationCount { get; set; }
 
+        public int TotalBuildingCount { get; set; }
+
+        public int TotalVehicleCount { get; set; }
+
         public int CurrentHouseholds { get; set; }
 
         public int AvailableHouseholds { get; set; }
