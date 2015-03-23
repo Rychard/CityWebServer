@@ -74,10 +74,12 @@
     <Compile Include="Models\DistrictInfo.cs" />
     <Compile Include="Models\Economy.cs" />
     <Compile Include="Models\PolicyInfo.cs" />
+    <Compile Include="Models\PopulationGroup.cs" />
     <Compile Include="RequestHandlers\BudgetRequestHandler.cs" />
     <Compile Include="RequestHandlers\MessageRequestHandler.cs" />
     <Compile Include="RequestHandlers\CityInfoRequestHandler.cs" />
     <Compile Include="RequestHandlers\TestHandler.cs" />
+    <Compile Include="RequestHandlers\TransportRequestHandler.cs" />
     <Compile Include="Retrievers\ChirpRetriever.cs" />
     <Compile Include="UserModInfo.cs" />
     <Compile Include="WebServer.cs" />
