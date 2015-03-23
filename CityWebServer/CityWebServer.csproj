@@ -80,6 +80,7 @@
     <Compile Include="RequestHandlers\CityInfoRequestHandler.cs" />
     <Compile Include="RequestHandlers\TestHandler.cs" />
     <Compile Include="RequestHandlers\TransportRequestHandler.cs" />
+    <Compile Include="RequestHandlers\VehicleRequestHandler.cs" />
     <Compile Include="Retrievers\ChirpRetriever.cs" />
     <Compile Include="UserModInfo.cs" />
     <Compile Include="WebServer.cs" />
