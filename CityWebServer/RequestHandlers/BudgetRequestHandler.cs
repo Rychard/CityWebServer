@@ -1,24 +1,12 @@
 ﻿using System;
 using System.Net;
-using System.Text;
 using CityWebServer.Extensibility;
 using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class BudgetRequestHandler : BaseHandler, ILogAppender
+    public class BudgetRequestHandler : BaseHandler
     {
-        public event EventHandler<LogAppenderEventArgs> LogMessage;
-
-        private void OnLogMessage(String message)
-        {
-            var handler = LogMessage;
-            if (handler != null)
-            {
-                handler(this, new LogAppenderEventArgs(message));
-            }
-        }
-
         public override Guid HandlerID
         {
             get { return new Guid("87205a0d-1b53-47bd-91fa-9cddf0a3bd9e"); }
@@ -63,10 +51,6 @@ namespace CityWebServer.RequestHandlers
             var content = String.Format("Income: {0:C}{2}Expenses: {1:C}", formattedIncome, formattedExpenses, Environment.NewLine);
 
             return HtmlResponse(content);
-        }
-
-        public BudgetRequestHandler()
-        {
         }
     }
 }

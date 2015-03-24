@@ -1,23 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
-using CityWebServer.Extensibility;
 
 namespace CityWebServer
 {
-    public class WebServer : ILogAppender
+    public class WebServer
     {
-        public event EventHandler<LogAppenderEventArgs> LogMessage;
-
-        private void OnLogMessage(String message)
-        {
-            var handler = LogMessage;
-            if (handler != null)
-            {
-                handler(this, new LogAppenderEventArgs(message));
-            }
-        }
-
         private readonly HttpListener _listener = new HttpListener();
         private readonly Action<HttpListenerRequest, HttpListenerResponse> _responderMethod;
 
@@ -41,7 +29,8 @@ namespace CityWebServer
             _listener.Start();
         }
 
-        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params string[] prefixes) : this(prefixes, method)
+        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params string[] prefixes) 
+            : this(prefixes, method)
         {
         }
 

@@ -98,7 +98,6 @@ namespace CityWebServer
             if (_server != null)
             {
                 _server.Stop();
-                _server.LogMessage -= ServerOnLogMessage;
                 _server = null;
             }
 
@@ -123,7 +122,6 @@ namespace CityWebServer
 
             WebServer ws = new WebServer(HandleRequest, endpoint);
             _server = ws;
-            _server.LogMessage += ServerOnLogMessage;
             _server.Run();
             LogMessage("Server Initialized.");
         }

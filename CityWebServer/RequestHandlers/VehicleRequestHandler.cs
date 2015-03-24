@@ -58,22 +58,6 @@ namespace CityWebServer.RequestHandlers
                 return JsonResponse(vehicleIds);
             }
 
-            //BuildingManager instance = Singleton<BuildingManager>.instance;
-            //foreach (Building building in instance.m_buildings.m_buffer)
-            //{
-            //    if (building.m_flags == Building.Flags.None) { continue; }
-            //    var districtID = (int)districtManager.GetDistrict(building.m_position);
-            //    if (districtBuildings.ContainsKey(districtID))
-            //    {
-            //        districtBuildings[districtID]++;
-            //    }
-            //    else
-            //    {
-            //        districtBuildings.Add(districtID, 1);
-            //    }
-            //}
-
-
             List<ushort> s = new List<ushort>();
 
             foreach (var vehicle in vehicleManager.m_vehicles.m_buffer)
@@ -85,15 +69,12 @@ namespace CityWebServer.RequestHandlers
                     var origin = (vehicle.m_sourceBuilding);
                     var target = (vehicle.m_targetBuilding);
 
-                    //s.Add((Enum.GetName(typeof(VehicleInfo.VehicleType), vehicle.Info.m_vehicleType)));
                     if (origin > 0) { s.Add(origin); }
                     if (target > 0) { s.Add(target); }    
                 }
             }
 
             var grouped = s.GroupBy(obj => obj).Select(group => new { BuildingID = group.Key, Count = group.Count() }).OrderByDescending(obj => obj.Count).Select(obj => new { Building = BuildingManager.instance.GetBuildingName(obj.BuildingID, new InstanceID()), obj.Count }).ToList();
-            
-            //s.Sort();
             
             return JsonResponse(grouped);
         }
