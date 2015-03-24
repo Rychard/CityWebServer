@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using ApacheMimeTypes;
 using CityWebServer.Extensibility;
 using CityWebServer.Extensibility.Responses;
@@ -18,6 +19,8 @@ namespace CityWebServer
     public class IntegratedWebServer : ThreadingExtensionBase
     {
         private const String WebServerPortKey = "webServerPort";
+        private static readonly Type RequestHandlerType = typeof(IRequestHandler);
+
         private static List<String> _logLines;
 
         private WebServer _server;
@@ -88,9 +91,31 @@ namespace CityWebServer
         {
             this.InitializeServer();
             _requestHandlers = new List<IRequestHandler>();
+            RegisterAssemblyLoader();
             RegisterHandlers();
 
             base.OnCreated(threading);
+        }
+
+        private void RegisterAssemblyLoader()
+        {
+            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
+            AppDomain.CurrentDomain.DomainUnload += OnAppDomainUnload;
+        }
+
+        private void OnAppDomainUnload(object sender, EventArgs e)
+        {
+            // TODO: Unload handlers
+        }
+
+        private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
+        {
+            Assembly assembly = args.LoadedAssembly;
+
+            List<Type> handlers = new List<Type>();
+            AppendPotentialHandlers(assembly, handlers);
+            RegisterHandlers(handlers);
+
         }
 
         private void InitializeServer()
@@ -252,39 +277,45 @@ namespace CityWebServer
         /// </summary>
         private void RegisterHandlers()
         {
-            // TODO: This code doesn't detect handlers that are hot-loaded, if they're in a separate assembly.  We'll need to handle this somehow.
+            IEnumerable<Type> handlers = FindHandlersInLoadedAssemblies();
+            RegisterHandlers(handlers);
+        }
 
-            var handlers = FindHandlers();
+        private void RegisterHandlers(IEnumerable<Type> handlers)
+        {
             foreach (var handler in handlers)
             {
                 // Only register handlers that we don't already have an instance of.
-                if (_requestHandlers.All(h => h.GetType() != handler))
+                if (_requestHandlers.Any(h => h.GetType() == handler))
                 {
-                    IRequestHandler handlerInstance = null;
-                    Boolean exists = false;
-                    try
-                    {
-                        handlerInstance = (IRequestHandler)Activator.CreateInstance(handler);
+                    continue;
+                }
 
-                        // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
-                        exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage(ex.ToString());
-                    }
+                IRequestHandler handlerInstance = null;
+                Boolean exists = false;
 
-                    if (exists)
-                    {
-                        // TODO: Allow duplicate registrations to occur; previous registration is removed and replaced with a new one?
-                        LogMessage(String.Format("Supressing duplicate handler registration for '{0}'", handler.Name));
-                    }
-                    else
-                    {
-                        // TODO: Add event handler for any handler that implements the ILogAppender interface.
-                        _requestHandlers.Add(handlerInstance);
-                        LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));
-                    }
+                try
+                {
+                    handlerInstance = (IRequestHandler) Activator.CreateInstance(handler);
+
+                    // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
+                    exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(ex.ToString());
+                }
+
+                if (exists)
+                {
+                    // TODO: Allow duplicate registrations to occur; previous registration is removed and replaced with a new one?
+                    LogMessage(String.Format("Supressing duplicate handler registration for '{0}'", handler.Name));
+                }
+                else
+                {
+                    // TODO: Add event handler for any handler that implements the ILogAppender interface.
+                    _requestHandlers.Add(handlerInstance);
+                    LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));
                 }
             }
         }
@@ -292,39 +323,49 @@ namespace CityWebServer
         /// <summary>
         /// Searches all the assemblies in the current AppDomain, and returns a collection of those that implement the <see cref="IRequestHandler"/> interface.
         /// </summary>
-        private List<Type> FindHandlers()
+        private static IEnumerable<Type> FindHandlersInLoadedAssemblies()
         {
             List<Type> handlers = new List<Type>();
-            var requestHandlerType = typeof(IRequestHandler);
-
+            
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
             foreach (var assembly in assemblies)
             {
-                var assemblyName = assembly.GetName().Name;
+                AppendPotentialHandlers(assembly, handlers);
+            }
 
-                // Skip any assemblies that we don't anticipate finding anything in.
-                if (IgnoredAssemblies.Contains(assemblyName)) { continue; }
+            return handlers;
+        }
 
-                int typeCount = 0;
-                try
+        private static void AppendPotentialHandlers(Assembly assembly, ICollection<Type> handlers)
+        {
+            var assemblyName = assembly.GetName().Name;
+
+            // Skip any assemblies that we don't anticipate finding anything in.
+            if (IgnoredAssemblies.Contains(assemblyName))
+            {
+                return;
+            }
+
+            int typeCount = 0;
+            try
+            {
+                var types = assembly.GetTypes().ToList();
+                typeCount = types.Count;
+                foreach (var type in types)
                 {
-                    var types = assembly.GetTypes().ToList();
-                    typeCount = types.Count;
-                    foreach (var type in types)
+                    if (RequestHandlerType.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
                     {
-                        if (requestHandlerType.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
-                        {
-                            handlers.Add(type);
-                        }
+                        handlers.Add(type);
                     }
                 }
-                catch (Exception ex)
-                {
-                    LogMessage(ex.ToString());
-                }
-                LogMessage(String.Format("Found {0} types in {1}, of which {2} were potential request handlers.", typeCount, assembly.GetName().Name, handlers.Count));
             }
-            return handlers;
+            catch (Exception ex)
+            {
+                LogMessage(ex.ToString());
+            }
+            LogMessage(String.Format("Found {0} types in {1}, of which {2} were potential request handlers.", typeCount,
+                assembly.GetName().Name, handlers.Count));
         }
 
         #region Reserved Endpoint Handlers
