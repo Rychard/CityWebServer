@@ -2,47 +2,44 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using CityWebServer.Extensibility;
-using CityWebServer.Helpers;
 using ColossalFramework;
-using ColossalFramework.Plugins;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class VehicleRequestHandler : IRequestHandler
+    public class VehicleRequestHandler : BaseHandler
     {
-        public Guid HandlerID
+        public override Guid HandlerID
         {
             get { return new Guid("2be6546a-d416-4939-8e08-1d0b739be835"); }
         }
 
-        public int Priority
+        public override int Priority
         {
             get { return 100; }
         }
 
-        public string Name
+        public override string Name
         {
             get { return "Vehicle"; }
         }
 
-        public string Author
+        public override string Author
         {
             get { return "Rychard"; }
         }
 
-        public string MainPath
+        public override string MainPath
         {
             get { return "/Vehicle"; }
         }
 
-        public bool ShouldHandle(HttpListenerRequest request)
+        public override bool ShouldHandle(HttpListenerRequest request)
         {
             return (request.Url.AbsolutePath.StartsWith("/Vehicle", StringComparison.OrdinalIgnoreCase));
         }
 
-        public void Handle(HttpListenerRequest request, HttpListenerResponse response)
+        public override IResponse Handle(HttpListenerRequest request)
         {
             var vehicleManager = Singleton<VehicleManager>.instance;
 
@@ -57,8 +54,8 @@ namespace CityWebServer.RequestHandlers
 
                     vehicleIds.Add(i);
                 }
-                response.WriteJson(vehicleIds);
-                return;
+
+                return JsonResponse(vehicleIds);
             }
 
             //BuildingManager instance = Singleton<BuildingManager>.instance;
@@ -98,8 +95,7 @@ namespace CityWebServer.RequestHandlers
             
             //s.Sort();
             
-            //response.WriteJson(s);
-            response.WriteJson(grouped);
+            return JsonResponse(grouped);
         }
     }
 }

@@ -6,7 +6,7 @@ using CityWebServer.Helpers;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class TestHandler : IRequestHandler, ILogAppender
+    public class TestHandler : BaseHandler, ILogAppender
     {
         public event EventHandler<LogAppenderEventArgs> LogMessage;
 
@@ -19,43 +19,43 @@ namespace CityWebServer.RequestHandlers
             }
         }
 
-        public Guid HandlerID
+        public override Guid HandlerID
         {
             get { return new Guid("e7019de3-ac6c-4099-a384-a1de325b4a9d"); }
         }
 
-        public int Priority
+        public override int Priority
         {
             get { return 100; }
         }
 
-        public string Name
+        public override string Name
         {
             get { return "Test"; }
         }
 
-        public string Author
+        public override string Author
         {
             get { return "Rychard"; }
         }
 
-        public string MainPath
+        public override string MainPath
         {
             get { return "/Test"; }
         }
 
-        public bool ShouldHandle(HttpListenerRequest request)
+        public override bool ShouldHandle(HttpListenerRequest request)
         {
             return (request.Url.AbsolutePath.Equals("/Test", StringComparison.OrdinalIgnoreCase));
         }
 
-        public void Handle(HttpListenerRequest request, HttpListenerResponse response)
+        public override IResponse Handle(HttpListenerRequest request)
         {
             List<String> s = new List<string>();
 
             s.Add("Test");
 
-            response.WriteJson(s);
+            return JsonResponse(s);
         }
     }
 }

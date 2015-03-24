@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
+using ApacheMimeTypes;
 using CityWebServer.Extensibility;
+using CityWebServer.Extensibility.Responses;
 using CityWebServer.Helpers;
 using ColossalFramework;
 using ColossalFramework.Plugins;
@@ -19,7 +19,6 @@ namespace CityWebServer
     {
         private const String WebServerPortKey = "webServerPort";
         private static List<String> _logLines;
-        private static readonly Object LockObject = new Object();
 
         private WebServer _server;
         private List<IRequestHandler> _requestHandlers;
@@ -178,8 +177,15 @@ namespace CityWebServer
 
             // There are two reserved endpoints: "/" and "/Log".
             // These take precedence over all other request handlers.
-            if (ServiceRoot(request, response)) { return; }
-            if (ServiceLog(request, response)) { return; }
+            if (ServiceRoot(request, response))
+            {
+                return;
+            }
+
+            if (ServiceLog(request, response))
+            {
+                return;
+            }
 
             // Get the request handler associated with the current request.
             var handler = _requestHandlers.FirstOrDefault(obj => obj.ShouldHandle(request));
@@ -187,7 +193,9 @@ namespace CityWebServer
             {
                 try
                 {
-                    handler.Handle(request, response);
+                    IResponse responseWriter = handler.Handle(request);
+                    responseWriter.WriteContent(response);
+
                     return;
                 }
                 catch (Exception ex)
@@ -196,10 +204,10 @@ namespace CityWebServer
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", _requestHandlers, errorBody);
                     var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                    byte[] buf = Encoding.UTF8.GetBytes(template);
-                    response.ContentType = "text/html";
-                    response.ContentLength64 = buf.Length;
-                    response.OutputStream.Write(buf, 0, buf.Length);
+                    IResponse errorResponse = new HtmlResponse(template);
+                    errorResponse.WriteContent(response);
+
+                    return;
                 }
             }
 
@@ -218,7 +226,7 @@ namespace CityWebServer
             if (File.Exists(absolutePath))
             {
                 var extension = Path.GetExtension(absolutePath);
-                response.ContentType = ApacheMimeTypes.Apache.GetMime(extension);
+                response.ContentType = Apache.GetMime(extension);
                 response.StatusCode = 200; // HTTP 200 - SUCCESS
 
                 // Open file, read bytes into buffer and write them to the output stream.
@@ -234,13 +242,10 @@ namespace CityWebServer
             }
             else
             {
-                response.StatusCode = 404;
                 String body = String.Format("No resource is available at the specified filepath: {0}", absolutePath);
 
-                byte[] body404 = Encoding.UTF8.GetBytes(body);
-                response.ContentType = "text/plain";
-                response.ContentLength64 = body404.Length;
-                response.OutputStream.Write(body404, 0, body404.Length);
+                IResponse notFoundResponse = new PlainTextResponse(body, HttpStatusCode.NotFound);
+                notFoundResponse.WriteContent(response);
             }
         }
 
@@ -309,7 +314,7 @@ namespace CityWebServer
                     typeCount = types.Count;
                     foreach (var type in types)
                     {
-                        if (requestHandlerType.IsAssignableFrom(type) && type.IsClass)
+                        if (requestHandlerType.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
                         {
                             handlers.Add(type);
                         }
@@ -343,13 +348,12 @@ namespace CityWebServer
                 var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Home", _requestHandlers, body);
                 var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                byte[] buf = Encoding.UTF8.GetBytes(template);
-                response.ContentType = "text/html";
-                response.ContentLength64 = buf.Length;
-                response.OutputStream.Write(buf, 0, buf.Length);
+                IResponse htmlResponse = new HtmlResponse(template);
+                htmlResponse.WriteContent(response);
 
                 return true;
             }
+
             return false;
         }
 
@@ -365,14 +369,13 @@ namespace CityWebServer
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Log", _requestHandlers, body);
                     var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                    byte[] buf = Encoding.UTF8.GetBytes(template);
-                    response.ContentType = "text/html";
-                    response.ContentLength64 = buf.Length;
-                    response.OutputStream.Write(buf, 0, buf.Length);
+                    IResponse htmlResponse = new HtmlResponse(template);
+                    htmlResponse.WriteContent(response);
 
                     return true;
                 }
             }
+
             return false;
         }
 
