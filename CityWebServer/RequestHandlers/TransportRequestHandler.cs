@@ -2,47 +2,45 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using CityWebServer.Extensibility;
-using CityWebServer.Helpers;
 using CityWebServer.Models;
 using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class TransportRequestHandler : IRequestHandler
+    public class TransportRequestHandler : BaseHandler
     {
-        public Guid HandlerID
+        public override Guid HandlerID
         {
             get { return new Guid("89c8ef27-fc8c-4fe8-9793-1f6432feb179"); }
         }
 
-        public int Priority
+        public override int Priority
         {
             get { return 100; }
         }
 
-        public string Name
+        public override string Name
         {
             get { return "Transport"; }
         }
 
-        public string Author
+        public override string Author
         {
             get { return "Rychard"; }
         }
 
-        public string MainPath
+        public override string MainPath
         {
             get { return "/Transport"; }
         }
 
-        public bool ShouldHandle(HttpListenerRequest request)
+        public override bool ShouldHandle(HttpListenerRequest request)
         {
             return (request.Url.AbsolutePath.Equals("/Transport", StringComparison.OrdinalIgnoreCase));
         }
 
-        public void Handle(HttpListenerRequest request, HttpListenerResponse response)
+        public override IResponse Handle(HttpListenerRequest request)
         {
             var transportManager = Singleton<TransportManager>.instance;
 
@@ -81,16 +79,7 @@ namespace CityWebServer.RequestHandlers
 
             lineModels = lineModels.OrderBy(obj => obj.Name).ToList();
 
-            response.WriteJson(lineModels);
+            return JsonResponse(lineModels);
         }
-    }
-
-    public class PublicTransportLine
-    {
-        public String Name { get; set; }
-        public int VehicleCount { get; set; }
-        public int StopCount { get; set; }
-
-        public PopulationGroup[] Passengers { get; set; }
     }
 }
