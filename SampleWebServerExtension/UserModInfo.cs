@@ -1,15 +1,16 @@
-﻿using ICities;
+﻿using System;
+using ICities;
 
 namespace SampleWebServerExtension
 {
     public class UserModInfo : IUserMod
     {
-        public string Name
+        public String Name
         {
             get { return "Sample Web Server Extension"; }
         }
 
-        public string Description
+        public String Description
         {
             get { return "Adds a sample page to the integrated web server.  Doesn't do anything without it!"; }
         }

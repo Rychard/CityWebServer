@@ -86,7 +86,7 @@ namespace CityWebServer.Helpers
             var handlerLinks = orderedHandlers.Select(obj => String.Format("<li><a href='{0}'>{1}</a></li>", obj.MainPath, obj.Name)).ToArray();
             String nav = String.Join(Environment.NewLine, handlerLinks);
 
-            return new Dictionary<string, string>
+            return new Dictionary<String, String>
             {
                 { "#PAGETITLE#", title },
                 { "#NAV#", nav},

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using ColossalFramework.Plugins;
 using JsonFx.Serialization;
 
 namespace CityWebServer.Helpers
@@ -14,14 +13,10 @@ namespace CityWebServer.Helpers
         private static readonly String _filePath;
         private static List<Setting> _settings;
 
-        private static Boolean _isLoaded;
-
         static Configuration()
         {
-            _isLoaded = false;
             _filePath = GetSettingsFilePath();
             LoadSettings();
-            _isLoaded = true;
         }
 
         public static String GetSettingsFilePath()
@@ -79,9 +74,6 @@ namespace CityWebServer.Helpers
 
         private static String GetSettingRaw(String key)
         {
-            // We can't retrieve any data while it's being loaded.
-            while (!_isLoaded) { System.Threading.Thread.Sleep(100); }
-
             lock (LockerObject)
             {
                 String raw;
@@ -100,9 +92,6 @@ namespace CityWebServer.Helpers
 
         private static void SetSettingRaw(String key, String value, String type)
         {
-            // We can't retrieve any data while it's being loaded.
-            while (!_isLoaded) { System.Threading.Thread.Sleep(100); }
-
             lock (LockerObject)
             {
                 var matches = _settings.Where(obj => obj.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).ToList();
@@ -124,9 +113,6 @@ namespace CityWebServer.Helpers
 
         public static Boolean HasSetting(String key)
         {
-            // We can't retrieve any data while it's being loaded.
-            while (!_isLoaded) { System.Threading.Thread.Sleep(100); }
-
             lock (LockerObject)
             {
                 if (_settings == null) { throw new Exception("Settings aren't loaded!"); }
@@ -137,9 +123,6 @@ namespace CityWebServer.Helpers
 
         public static Type GetSettingType(String key)
         {
-            // We can't retrieve any data while it's being loaded.
-            while (!_isLoaded) { System.Threading.Thread.Sleep(100); }
-
             lock (LockerObject)
             {
                 var matches = _settings.Where(obj => obj.Key.Equals(key, StringComparison.InvariantCultureIgnoreCase)).ToList();

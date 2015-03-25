@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
+using System.Reflection;
+using ApacheMimeTypes;
 using CityWebServer.Extensibility;
+using CityWebServer.Extensibility.Responses;
 using CityWebServer.Helpers;
 using ColossalFramework;
 using ColossalFramework.Plugins;
@@ -18,8 +19,9 @@ namespace CityWebServer
     public class IntegratedWebServer : ThreadingExtensionBase
     {
         private const String WebServerPortKey = "webServerPort";
+        private static readonly Type RequestHandlerType = typeof(IRequestHandler);
+
         private static List<String> _logLines;
-        private static readonly Object LockObject = new Object();
 
         private WebServer _server;
         private List<IRequestHandler> _requestHandlers;
@@ -89,9 +91,31 @@ namespace CityWebServer
         {
             this.InitializeServer();
             _requestHandlers = new List<IRequestHandler>();
+            RegisterAssemblyLoader();
             RegisterHandlers();
 
             base.OnCreated(threading);
+        }
+
+        private void RegisterAssemblyLoader()
+        {
+            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
+            AppDomain.CurrentDomain.DomainUnload += OnAppDomainUnload;
+        }
+
+        private void OnAppDomainUnload(object sender, EventArgs e)
+        {
+            // TODO: Unload handlers
+        }
+
+        private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
+        {
+            Assembly assembly = args.LoadedAssembly;
+
+            List<Type> handlers = new List<Type>();
+            AppendPotentialHandlers(assembly, handlers);
+            RegisterHandlers(handlers);
+
         }
 
         private void InitializeServer()
@@ -99,7 +123,6 @@ namespace CityWebServer
             if (_server != null)
             {
                 _server.Stop();
-                _server.LogMessage -= ServerOnLogMessage;
                 _server = null;
             }
 
@@ -124,7 +147,6 @@ namespace CityWebServer
 
             WebServer ws = new WebServer(HandleRequest, endpoint);
             _server = ws;
-            _server.LogMessage += ServerOnLogMessage;
             _server.Run();
             LogMessage("Server Initialized.");
         }
@@ -178,8 +200,15 @@ namespace CityWebServer
 
             // There are two reserved endpoints: "/" and "/Log".
             // These take precedence over all other request handlers.
-            if (ServiceRoot(request, response)) { return; }
-            if (ServiceLog(request, response)) { return; }
+            if (ServiceRoot(request, response))
+            {
+                return;
+            }
+
+            if (ServiceLog(request, response))
+            {
+                return;
+            }
 
             // Get the request handler associated with the current request.
             var handler = _requestHandlers.FirstOrDefault(obj => obj.ShouldHandle(request));
@@ -187,7 +216,9 @@ namespace CityWebServer
             {
                 try
                 {
-                    handler.Handle(request, response);
+                    IResponse responseWriter = handler.Handle(request);
+                    responseWriter.WriteContent(response);
+
                     return;
                 }
                 catch (Exception ex)
@@ -196,10 +227,10 @@ namespace CityWebServer
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", _requestHandlers, errorBody);
                     var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                    byte[] buf = Encoding.UTF8.GetBytes(template);
-                    response.ContentType = "text/html";
-                    response.ContentLength64 = buf.Length;
-                    response.OutputStream.Write(buf, 0, buf.Length);
+                    IResponse errorResponse = new HtmlResponse(template);
+                    errorResponse.WriteContent(response);
+
+                    return;
                 }
             }
 
@@ -209,7 +240,7 @@ namespace CityWebServer
             ServiceFileRequest(wwwroot, request, response);
         }
 
-        private static void ServiceFileRequest(string wwwroot, HttpListenerRequest request, HttpListenerResponse response)
+        private static void ServiceFileRequest(String wwwroot, HttpListenerRequest request, HttpListenerResponse response)
         {
             var relativePath = request.Url.AbsolutePath.Substring(1);
             relativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
@@ -218,7 +249,7 @@ namespace CityWebServer
             if (File.Exists(absolutePath))
             {
                 var extension = Path.GetExtension(absolutePath);
-                response.ContentType = ApacheMimeTypes.Apache.GetMime(extension);
+                response.ContentType = Apache.GetMime(extension);
                 response.StatusCode = 200; // HTTP 200 - SUCCESS
 
                 // Open file, read bytes into buffer and write them to the output stream.
@@ -234,13 +265,10 @@ namespace CityWebServer
             }
             else
             {
-                response.StatusCode = 404;
                 String body = String.Format("No resource is available at the specified filepath: {0}", absolutePath);
 
-                byte[] body404 = Encoding.UTF8.GetBytes(body);
-                response.ContentType = "text/plain";
-                response.ContentLength64 = body404.Length;
-                response.OutputStream.Write(body404, 0, body404.Length);
+                IResponse notFoundResponse = new PlainTextResponse(body, HttpStatusCode.NotFound);
+                notFoundResponse.WriteContent(response);
             }
         }
 
@@ -249,39 +277,45 @@ namespace CityWebServer
         /// </summary>
         private void RegisterHandlers()
         {
-            // TODO: This code doesn't detect handlers that are hot-loaded, if they're in a separate assembly.  We'll need to handle this somehow.
+            IEnumerable<Type> handlers = FindHandlersInLoadedAssemblies();
+            RegisterHandlers(handlers);
+        }
 
-            var handlers = FindHandlers();
+        private void RegisterHandlers(IEnumerable<Type> handlers)
+        {
             foreach (var handler in handlers)
             {
                 // Only register handlers that we don't already have an instance of.
-                if (_requestHandlers.All(h => h.GetType() != handler))
+                if (_requestHandlers.Any(h => h.GetType() == handler))
                 {
-                    IRequestHandler handlerInstance = null;
-                    Boolean exists = false;
-                    try
-                    {
-                        handlerInstance = (IRequestHandler)Activator.CreateInstance(handler);
+                    continue;
+                }
 
-                        // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
-                        exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage(ex.ToString());
-                    }
+                IRequestHandler handlerInstance = null;
+                Boolean exists = false;
 
-                    if (exists)
-                    {
-                        // TODO: Allow duplicate registrations to occur; previous registration is removed and replaced with a new one?
-                        LogMessage(String.Format("Supressing duplicate handler registration for '{0}'", handler.Name));
-                    }
-                    else
-                    {
-                        // TODO: Add event handler for any handler that implements the ILogAppender interface.
-                        _requestHandlers.Add(handlerInstance);
-                        LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));
-                    }
+                try
+                {
+                    handlerInstance = (IRequestHandler) Activator.CreateInstance(handler);
+
+                    // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
+                    exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(ex.ToString());
+                }
+
+                if (exists)
+                {
+                    // TODO: Allow duplicate registrations to occur; previous registration is removed and replaced with a new one?
+                    LogMessage(String.Format("Supressing duplicate handler registration for '{0}'", handler.Name));
+                }
+                else
+                {
+                    // TODO: Add event handler for any handler that implements the ILogAppender interface.
+                    _requestHandlers.Add(handlerInstance);
+                    LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));
                 }
             }
         }
@@ -289,39 +323,49 @@ namespace CityWebServer
         /// <summary>
         /// Searches all the assemblies in the current AppDomain, and returns a collection of those that implement the <see cref="IRequestHandler"/> interface.
         /// </summary>
-        private List<Type> FindHandlers()
+        private static IEnumerable<Type> FindHandlersInLoadedAssemblies()
         {
             List<Type> handlers = new List<Type>();
-            var requestHandlerType = typeof(IRequestHandler);
-
+            
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
             foreach (var assembly in assemblies)
             {
-                var assemblyName = assembly.GetName().Name;
+                AppendPotentialHandlers(assembly, handlers);
+            }
 
-                // Skip any assemblies that we don't anticipate finding anything in.
-                if (IgnoredAssemblies.Contains(assemblyName)) { continue; }
+            return handlers;
+        }
 
-                int typeCount = 0;
-                try
+        private static void AppendPotentialHandlers(Assembly assembly, ICollection<Type> handlers)
+        {
+            var assemblyName = assembly.GetName().Name;
+
+            // Skip any assemblies that we don't anticipate finding anything in.
+            if (IgnoredAssemblies.Contains(assemblyName))
+            {
+                return;
+            }
+
+            int typeCount = 0;
+            try
+            {
+                var types = assembly.GetTypes().ToList();
+                typeCount = types.Count;
+                foreach (var type in types)
                 {
-                    var types = assembly.GetTypes().ToList();
-                    typeCount = types.Count;
-                    foreach (var type in types)
+                    if (RequestHandlerType.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
                     {
-                        if (requestHandlerType.IsAssignableFrom(type) && type.IsClass)
-                        {
-                            handlers.Add(type);
-                        }
+                        handlers.Add(type);
                     }
                 }
-                catch (Exception ex)
-                {
-                    LogMessage(ex.ToString());
-                }
-                LogMessage(String.Format("Found {0} types in {1}, of which {2} were potential request handlers.", typeCount, assembly.GetName().Name, handlers.Count));
             }
-            return handlers;
+            catch (Exception ex)
+            {
+                LogMessage(ex.ToString());
+            }
+            LogMessage(String.Format("Found {0} types in {1}, of which {2} were potential request handlers.", typeCount,
+                assembly.GetName().Name, handlers.Count));
         }
 
         #region Reserved Endpoint Handlers
@@ -333,7 +377,7 @@ namespace CityWebServer
         {
             if (request.Url.AbsolutePath.ToLower() == "/")
             {
-                List<String> links = new List<string>();
+                List<String> links = new List<String>();
                 foreach (var requestHandler in this._requestHandlers.OrderBy(obj => obj.Priority))
                 {
                     links.Add(String.Format("<li><a href='{1}'>{0}</a> by {2} (Priority: {3})</li>", requestHandler.Name, requestHandler.MainPath, requestHandler.Author, requestHandler.Priority));
@@ -343,13 +387,12 @@ namespace CityWebServer
                 var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Home", _requestHandlers, body);
                 var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                byte[] buf = Encoding.UTF8.GetBytes(template);
-                response.ContentType = "text/html";
-                response.ContentLength64 = buf.Length;
-                response.OutputStream.Write(buf, 0, buf.Length);
+                IResponse htmlResponse = new HtmlResponse(template);
+                htmlResponse.WriteContent(response);
 
                 return true;
             }
+
             return false;
         }
 
@@ -365,14 +408,13 @@ namespace CityWebServer
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Log", _requestHandlers, body);
                     var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                    byte[] buf = Encoding.UTF8.GetBytes(template);
-                    response.ContentType = "text/html";
-                    response.ContentLength64 = buf.Length;
-                    response.OutputStream.Write(buf, 0, buf.Length);
+                    IResponse htmlResponse = new HtmlResponse(template);
+                    htmlResponse.WriteContent(response);
 
                     return true;
                 }
             }
+
             return false;
         }
 

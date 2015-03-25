@@ -27,7 +27,7 @@ namespace CityWebServer.Models
     {
         public String Group { get; set; }
 
-        public string SubGroup { get; set; }
+        public String SubGroup { get; set; }
 
         public Double Amount { get; set; }
 

@@ -5,46 +5,43 @@ using CityWebServer.Extensibility;
 
 namespace SampleWebServerExtension
 {
-    public class SampleHandler : IRequestHandler
+    public class SampleHandler : BaseHandler
     {
-        public Guid HandlerID
+        public override Guid HandlerID
         {
             get { return new Guid("1a255904-bf72-406e-b5e2-c5a43fdd9bba"); }
         }
 
-        public int Priority
+        public override int Priority
         {
             get { return 100; }
         }
 
-        public string Name
+        public override String Name
         {
             get { return "Sample"; }
         }
 
-        public string Author
+        public override String Author
         {
             get { return "Rychard"; }
         }
 
-        public string MainPath
+        public override String MainPath
         {
             get { return "/Sample"; }
         }
 
-        public bool ShouldHandle(HttpListenerRequest request)
+        public override Boolean ShouldHandle(HttpListenerRequest request)
         {
             return (request.Url.AbsolutePath.Equals("/Sample", StringComparison.OrdinalIgnoreCase));
         }
 
-        public void Handle(HttpListenerRequest request, HttpListenerResponse response)
+        public override IResponse Handle(HttpListenerRequest request)
         {
             const String content = "This is a sample page!";
 
-            byte[] buf = Encoding.UTF8.GetBytes(content);
-            response.ContentType = "text/plain";
-            response.ContentLength64 = buf.Length;
-            response.OutputStream.Write(buf, 0, buf.Length);
+            return HtmlResponse(content);
         }
     }
 }
