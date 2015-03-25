@@ -7,7 +7,7 @@ using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class VehicleRequestHandler : BaseHandler
+    public class VehicleRequestHandler : RequestHandlerBase
     {
         public override Guid HandlerID
         {

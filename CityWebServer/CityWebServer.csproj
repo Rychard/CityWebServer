@@ -76,6 +76,7 @@
     <Compile Include="Models\PolicyInfo.cs" />
     <Compile Include="Models\PopulationGroup.cs" />
     <Compile Include="RequestHandlers\BudgetRequestHandler.cs" />
+    <Compile Include="RequestHandlers\BuildingRequestHandler.cs" />
     <Compile Include="RequestHandlers\MessageRequestHandler.cs" />
     <Compile Include="RequestHandlers\CityInfoRequestHandler.cs" />
     <Compile Include="Models\PublicTransportLine.cs" />

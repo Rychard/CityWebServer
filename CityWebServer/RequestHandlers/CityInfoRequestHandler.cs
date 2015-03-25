@@ -9,7 +9,7 @@ using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class CityInfoRequestHandler : BaseHandler
+    public class CityInfoRequestHandler : RequestHandlerBase
     {
         public override Guid HandlerID
         {

@@ -5,7 +5,7 @@ using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class BudgetRequestHandler : BaseHandler
+    public class BudgetRequestHandler : RequestHandlerBase
     {
         public override Guid HandlerID
         {

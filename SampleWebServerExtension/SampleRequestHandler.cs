@@ -5,7 +5,7 @@ using CityWebServer.Extensibility;
 
 namespace SampleWebServerExtension
 {
-    public class SampleHandler : BaseHandler
+    public class SampleRequestHandler : RequestHandlerBase
     {
         public override Guid HandlerID
         {

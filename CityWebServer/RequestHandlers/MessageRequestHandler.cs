@@ -5,7 +5,7 @@ using CityWebServer.Retrievers;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class MessageRequestHandler : BaseHandler, ILogAppender
+    public class MessageRequestHandler : RequestHandlerBase, ILogAppender
     {
         public event EventHandler<LogAppenderEventArgs> LogMessage;
 

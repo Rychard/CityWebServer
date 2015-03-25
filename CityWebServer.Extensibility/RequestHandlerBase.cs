@@ -4,7 +4,7 @@ using CityWebServer.Extensibility.Responses;
 
 namespace CityWebServer.Extensibility
 {
-    public abstract class BaseHandler : IRequestHandler
+    public abstract class RequestHandlerBase : IRequestHandler
     {
         /// <summary>
         /// Gets a unique identifier for this handler.  Only one handler can be loaded with a given identifier.
@@ -60,6 +60,9 @@ namespace CityWebServer.Extensibility
             return new HtmlResponseFormatter(content, statusCode);
         }
 
+        /// <summary>
+        /// Returns a response in plain text format.
+        /// </summary>
         protected IResponseFormatter PlainTextResponse(String content, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             return new PlainTextResponseFormatter(content, statusCode);

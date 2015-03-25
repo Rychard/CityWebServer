@@ -8,7 +8,7 @@ using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class TransportRequestHandler : BaseHandler
+    public class TransportRequestHandler : RequestHandlerBase
     {
         public override Guid HandlerID
         {
