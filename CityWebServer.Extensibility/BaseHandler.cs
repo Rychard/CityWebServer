@@ -42,27 +42,27 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        public abstract IResponse Handle(HttpListenerRequest request);
+        public abstract IResponseFormatter Handle(HttpListenerRequest request);
 
         /// <summary>
         /// Returns a response in JSON format.
         /// </summary>
-        protected IResponse JsonResponse<T>(T content, HttpStatusCode statusCode = HttpStatusCode.OK)
+        protected IResponseFormatter JsonResponse<T>(T content, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            return new JsonResponse<T>(content, statusCode);
+            return new JsonResponseFormatter<T>(content, statusCode);
         }
 
         /// <summary>
         /// Returns a response in HTML format.
         /// </summary>
-        protected IResponse HtmlResponse(String content, HttpStatusCode statusCode = HttpStatusCode.OK)
+        protected IResponseFormatter HtmlResponse(String content, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            return new HtmlResponse(content, statusCode);
+            return new HtmlResponseFormatter(content, statusCode);
         }
 
-        protected IResponse PlainTextResponse(String content, HttpStatusCode statusCode = HttpStatusCode.OK)
+        protected IResponseFormatter PlainTextResponse(String content, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            return new PlainTextResponse(content, statusCode);
+            return new PlainTextResponseFormatter(content, statusCode);
         }
     }
 }

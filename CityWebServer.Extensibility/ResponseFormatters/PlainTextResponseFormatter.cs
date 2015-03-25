@@ -4,12 +4,12 @@ using System.Text;
 
 namespace CityWebServer.Extensibility.Responses
 {
-    internal class PlainTextResponse : IResponse
+    internal class PlainTextResponseFormatter : IResponseFormatter
     {
         private readonly String _content;
         private readonly HttpStatusCode _statusCode;
 
-        public PlainTextResponse(String content, HttpStatusCode statusCode)
+        public PlainTextResponseFormatter(String content, HttpStatusCode statusCode)
         {
             _content = content;
             _statusCode = statusCode;

@@ -42,13 +42,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseHandler.cs" />
-    <Compile Include="Responses\HtmlResponse.cs" />
+    <Compile Include="ResponseFormatters\HtmlResponseFormatter.cs" />
     <Compile Include="ILogAppender.cs" />
     <Compile Include="IRequestHandler.cs" />
-    <Compile Include="IResponse.cs" />
-    <Compile Include="Responses\JsonResponse.cs" />
+    <Compile Include="IResponseFormatter.cs" />
+    <Compile Include="ResponseFormatters\JsonResponseFormatter.cs" />
     <Compile Include="LogAppenderEventArgs.cs" />
-    <Compile Include="Responses\PlainTextResponse.cs" />
+    <Compile Include="ResponseFormatters\PlainTextResponseFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 
 namespace CityWebServer.Extensibility
 {
-    public abstract class IResponse
+    public abstract class IResponseFormatter
     {
         public abstract void WriteContent(HttpListenerResponse response);
     }

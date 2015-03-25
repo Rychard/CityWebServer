@@ -50,7 +50,7 @@ namespace CityWebServer.RequestHandlers
             return (request.Url.AbsolutePath.Equals("/Messages", StringComparison.OrdinalIgnoreCase));
         }
 
-        public override IResponse Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request)
         {
             // TODO: Customize request handling.
             var messages = _chirpRetriever.Messages;

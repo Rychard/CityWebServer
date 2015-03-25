@@ -37,7 +37,7 @@ namespace SampleWebServerExtension
             return (request.Url.AbsolutePath.Equals("/Sample", StringComparison.OrdinalIgnoreCase));
         }
 
-        public override IResponse Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request)
         {
             const String content = "This is a sample page!";
 

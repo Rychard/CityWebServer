@@ -231,8 +231,8 @@ namespace CityWebServer
             {
                 try
                 {
-                    IResponse responseWriter = handler.Handle(request);
-                    responseWriter.WriteContent(response);
+                    IResponseFormatter responseFormatterWriter = handler.Handle(request);
+                    responseFormatterWriter.WriteContent(response);
 
                     return;
                 }
@@ -242,8 +242,8 @@ namespace CityWebServer
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", _requestHandlers, errorBody);
                     var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                    IResponse errorResponse = new HtmlResponse(template);
-                    errorResponse.WriteContent(response);
+                    IResponseFormatter errorResponseFormatter = new HtmlResponseFormatter(template);
+                    errorResponseFormatter.WriteContent(response);
 
                     return;
                 }
@@ -282,8 +282,8 @@ namespace CityWebServer
             {
                 String body = String.Format("No resource is available at the specified filepath: {0}", absolutePath);
 
-                IResponse notFoundResponse = new PlainTextResponse(body, HttpStatusCode.NotFound);
-                notFoundResponse.WriteContent(response);
+                IResponseFormatter notFoundResponseFormatter = new PlainTextResponseFormatter(body, HttpStatusCode.NotFound);
+                notFoundResponseFormatter.WriteContent(response);
             }
         }
 
@@ -402,8 +402,8 @@ namespace CityWebServer
                 var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Home", _requestHandlers, body);
                 var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                IResponse htmlResponse = new HtmlResponse(template);
-                htmlResponse.WriteContent(response);
+                IResponseFormatter htmlResponseFormatter = new HtmlResponseFormatter(template);
+                htmlResponseFormatter.WriteContent(response);
 
                 return true;
             }
@@ -423,8 +423,8 @@ namespace CityWebServer
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Log", _requestHandlers, body);
                     var template = TemplateHelper.PopulateTemplate("index", tokens);
 
-                    IResponse htmlResponse = new HtmlResponse(template);
-                    htmlResponse.WriteContent(response);
+                    IResponseFormatter htmlResponseFormatter = new HtmlResponseFormatter(template);
+                    htmlResponseFormatter.WriteContent(response);
 
                     return true;
                 }

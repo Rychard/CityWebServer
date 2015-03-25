@@ -44,6 +44,6 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        IResponse Handle(HttpListenerRequest request);
+        IResponseFormatter Handle(HttpListenerRequest request);
     }
 }

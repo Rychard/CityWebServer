@@ -1,15 +1,14 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 
 namespace CityWebServer.Extensibility.Responses
 {
-    internal class HtmlResponse : IResponse
+    internal class JsonResponseFormatter<T> : IResponseFormatter
     {
-        private readonly String _content;
+        private readonly T _content;
         private readonly HttpStatusCode _statusCode;
 
-        public HtmlResponse(String content, HttpStatusCode statusCode = HttpStatusCode.OK)
+        public JsonResponseFormatter(T content, HttpStatusCode statusCode)
         {
             _content = content;
             _statusCode = statusCode;
@@ -17,10 +16,13 @@ namespace CityWebServer.Extensibility.Responses
 
         public override void WriteContent(HttpListenerResponse response)
         {
-            byte[] buf = Encoding.UTF8.GetBytes(_content);
+            var writer = new JsonFx.Json.JsonWriter();
+            var serializedData = writer.Write(_content);
+
+            byte[] buf = Encoding.UTF8.GetBytes(serializedData);
 
             response.StatusCode = (int) _statusCode;
-            response.ContentType = "text/html";
+            response.ContentType = "text/json";
             response.ContentLength64 = buf.Length;
             response.OutputStream.Write(buf, 0, buf.Length);
         }

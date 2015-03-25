@@ -87,7 +87,7 @@ namespace CityWebServer.RequestHandlers
             return districtVehicles;
         }
 
-        public override IResponse Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request)
         {
             if (request.QueryString.HasKey("showList"))
             {
@@ -97,14 +97,14 @@ namespace CityWebServer.RequestHandlers
             return HandleDistrict(request);
         }
 
-        private IResponse HandleDistrictList()
+        private IResponseFormatter HandleDistrictList()
         {
             var districtIDs = DistrictInfo.GetDistricts().ToArray();
 
             return JsonResponse(districtIDs);
         }
 
-        private IResponse HandleDistrict(HttpListenerRequest request)
+        private IResponseFormatter HandleDistrict(HttpListenerRequest request)
         {
             var districtIDs = GetDistrictsFromRequest(request);
 
