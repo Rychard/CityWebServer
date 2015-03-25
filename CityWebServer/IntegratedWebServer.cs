@@ -328,11 +328,22 @@ namespace CityWebServer
                 }
                 else
                 {
-                    // TODO: Add event handler for any handler that implements the ILogAppender interface.
                     _requestHandlers.Add(handlerInstance);
+                    if (handlerInstance is ILogAppender)
+                    {
+                        var logAppender = (handlerInstance as ILogAppender);
+                        logAppender.LogMessage += RequestHandlerLogAppender_OnLogMessage;
+                    }
+
                     LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));
                 }
             }
+        }
+
+        private void RequestHandlerLogAppender_OnLogMessage(object sender, LogAppenderEventArgs logAppenderEventArgs)
+        {
+            var senderTypeName = sender.GetType().Name;
+            LogMessage(logAppenderEventArgs.LogLine, senderTypeName, false);
         }
 
         /// <summary>
