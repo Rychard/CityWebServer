@@ -64,7 +64,6 @@ namespace CityWebServer.RequestHandlers
                 if (building.m_flags == Building.Flags.None) { continue; }
 
                 // TODO: Something with Buildings.
-
             }
 
             return JsonResponse("");

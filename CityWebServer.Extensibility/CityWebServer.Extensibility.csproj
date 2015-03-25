@@ -50,6 +50,7 @@
     <Compile Include="LogAppenderEventArgs.cs" />
     <Compile Include="ResponseFormatters\PlainTextResponseFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RestfulRequestHandlerBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
