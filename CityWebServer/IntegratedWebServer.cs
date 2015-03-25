@@ -22,6 +22,7 @@ namespace CityWebServer
         private static readonly Type RequestHandlerType = typeof(IRequestHandler);
 
         private static List<String> _logLines;
+        private static string _endpoint;
 
         private WebServer _server;
         private List<IRequestHandler> _requestHandlers;
@@ -48,7 +49,13 @@ namespace CityWebServer
             "UnityEngine.UI",
         };
 
-        public static String Endpoint { get; private set; }
+        /// <summary>
+        /// Gets the root endpoint for which the server is configured to service HTTP requests.
+        /// </summary>
+        public static String Endpoint
+        {
+            get { return _endpoint; }
+        }
 
         /// <summary>
         /// Gets the full path to the directory where static pages are served from.
@@ -66,6 +73,14 @@ namespace CityWebServer
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Gets an array containing all currently registered request handlers.
+        /// </summary>
+        public IRequestHandler[] RequestHandlers
+        {
+            get { return _requestHandlers.ToArray(); }
         }
 
         /// <summary>
@@ -143,7 +158,7 @@ namespace CityWebServer
             }
 
             String endpoint = String.Format("http://localhost:{0}/", port);
-            Endpoint = endpoint;
+            _endpoint = endpoint;
 
             WebServer ws = new WebServer(HandleRequest, endpoint);
             _server = ws;
