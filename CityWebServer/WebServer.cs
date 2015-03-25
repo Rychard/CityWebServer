@@ -9,7 +9,7 @@ namespace CityWebServer
         private readonly HttpListener _listener = new HttpListener();
         private readonly Action<HttpListenerRequest, HttpListenerResponse> _responderMethod;
 
-        public WebServer(string[] prefixes, Action<HttpListenerRequest, HttpListenerResponse> method)
+        public WebServer(String[] prefixes, Action<HttpListenerRequest, HttpListenerResponse> method)
         {
             if (!HttpListener.IsSupported) { throw new NotSupportedException("This wouldn't happen if you upgraded your operating system more than once a decade."); }
 
@@ -20,7 +20,7 @@ namespace CityWebServer
             // A responder method is required
             if (method == null) { throw new ArgumentException("method"); }
 
-            foreach (string s in prefixes)
+            foreach (String s in prefixes)
             {
                 _listener.Prefixes.Add(s);
             }
@@ -29,8 +29,7 @@ namespace CityWebServer
             _listener.Start();
         }
 
-        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params string[] prefixes) 
-            : this(prefixes, method)
+        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params String[] prefixes) : this(prefixes, method)
         {
         }
 

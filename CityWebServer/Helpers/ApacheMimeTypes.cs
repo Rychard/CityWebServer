@@ -7,18 +7,7 @@ namespace ApacheMimeTypes
 {
     class Apache
     {
-        public static String GetMime(String extension)
-        {
-            extension = extension.Replace(".", "");
-            extension = extension.ToLower();
-            if (MimeTypes.Count(obj => obj.Key == extension) == 1)
-            {
-                return MimeTypes.FirstOrDefault(obj => obj.Key == extension).Value;
-            }
-            return "text/plain";
-        }
-
-        public static Dictionary<string, string> MimeTypes = new Dictionary<string, string>
+        private static Dictionary<String, String> _mimeTypes = new Dictionary<String, String>
 		{
 			{ "123", "application/vnd.lotus-1-2-3" },
 			{ "3dml", "text/vnd.in3d.3dml" },
@@ -904,5 +893,21 @@ namespace ApacheMimeTypes
 			{ "zirz", "application/vnd.zul" },
 			{ "zmm", "application/vnd.handheld-entertainment+xml" },
 		};
+
+        public static Dictionary<String, String> MimeTypes
+        {
+            get { return _mimeTypes; }
+        }
+
+        public static String GetMime(String extension)
+        {
+            extension = extension.Replace(".", "");
+            extension = extension.ToLower();
+            if (_mimeTypes.Count(obj => obj.Key == extension) == 1)
+            {
+                return _mimeTypes.FirstOrDefault(obj => obj.Key == extension).Value;
+            }
+            return "text/plain";
+        }
     }
 }

@@ -17,22 +17,22 @@ namespace SampleWebServerExtension
             get { return 100; }
         }
 
-        public override string Name
+        public override String Name
         {
             get { return "Sample"; }
         }
 
-        public override string Author
+        public override String Author
         {
             get { return "Rychard"; }
         }
 
-        public override string MainPath
+        public override String MainPath
         {
             get { return "/Sample"; }
         }
 
-        public override bool ShouldHandle(HttpListenerRequest request)
+        public override Boolean ShouldHandle(HttpListenerRequest request)
         {
             return (request.Url.AbsolutePath.Equals("/Sample", StringComparison.OrdinalIgnoreCase));
         }

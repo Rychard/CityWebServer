@@ -240,7 +240,7 @@ namespace CityWebServer
             ServiceFileRequest(wwwroot, request, response);
         }
 
-        private static void ServiceFileRequest(string wwwroot, HttpListenerRequest request, HttpListenerResponse response)
+        private static void ServiceFileRequest(String wwwroot, HttpListenerRequest request, HttpListenerResponse response)
         {
             var relativePath = request.Url.AbsolutePath.Substring(1);
             relativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
@@ -377,7 +377,7 @@ namespace CityWebServer
         {
             if (request.Url.AbsolutePath.ToLower() == "/")
             {
-                List<String> links = new List<string>();
+                List<String> links = new List<String>();
                 foreach (var requestHandler in this._requestHandlers.OrderBy(obj => obj.Priority))
                 {
                     links.Add(String.Format("<li><a href='{1}'>{0}</a> by {2} (Priority: {3})</li>", requestHandler.Name, requestHandler.MainPath, requestHandler.Author, requestHandler.Priority));

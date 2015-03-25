@@ -21,22 +21,22 @@ namespace CityWebServer.RequestHandlers
             get { return 100; }
         }
 
-        public override string Name
+        public override String Name
         {
             get { return "City Info"; }
         }
 
-        public override string Author
+        public override String Author
         {
             get { return "Rychard"; }
         }
 
-        public override string MainPath
+        public override String MainPath
         {
             get { return "/CityInfo"; }
         }
 
-        public override bool ShouldHandle(HttpListenerRequest request)
+        public override Boolean ShouldHandle(HttpListenerRequest request)
         {
             return (request.Url.AbsolutePath.Equals("/CityInfo", StringComparison.OrdinalIgnoreCase));
         }

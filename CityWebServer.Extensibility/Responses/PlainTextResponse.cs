@@ -1,14 +1,15 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Text;
 
 namespace CityWebServer.Extensibility.Responses
 {
     internal class PlainTextResponse : IResponse
     {
-        private readonly string _content;
+        private readonly String _content;
         private readonly HttpStatusCode _statusCode;
 
-        public PlainTextResponse(string content, HttpStatusCode statusCode)
+        public PlainTextResponse(String content, HttpStatusCode statusCode)
         {
             _content = content;
             _statusCode = statusCode;
