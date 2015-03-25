@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using CityWebServer.Extensibility;
+using CityWebServer.Extensibility.Responses;
 using ColossalFramework;
 
 namespace CityWebServer.RequestHandlers
@@ -50,7 +51,7 @@ namespace CityWebServer.RequestHandlers
 
             var content = String.Format("Income: {0:C}{2}Expenses: {1:C}", formattedIncome, formattedExpenses, Environment.NewLine);
 
-            return HtmlResponse(content);
+            return new PlainTextResponseFormatter(content, HttpStatusCode.OK);
         }
     }
 }
