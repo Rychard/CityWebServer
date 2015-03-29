@@ -32,6 +32,8 @@ namespace CityWebServer.Models
 
         public int AverageLandValue { get; set; }
 
+        public Double Pollution { get; set; }
+
         public PolicyInfo[] Policies { get; set; }
 
         public static IEnumerable<int> GetDistricts()
@@ -70,6 +72,8 @@ namespace CityWebServer.Models
                 districtName = districtManager.GetDistrictName(districtID);
             }
 
+            var pollution = Math.Round((district.m_groundData.m_finalPollution / (Double) byte.MaxValue), 2);
+
             var model = new DistrictInfo
             {
                 DistrictID = districtID,
@@ -81,6 +85,7 @@ namespace CityWebServer.Models
                 CurrentJobs = (int)district.m_commercialData.m_finalAliveCount + (int)district.m_industrialData.m_finalAliveCount + (int)district.m_officeData.m_finalAliveCount + (int)district.m_playerData.m_finalAliveCount,
                 AvailableJobs = (int)district.m_commercialData.m_finalHomeOrWorkCount + (int)district.m_industrialData.m_finalHomeOrWorkCount + (int)district.m_officeData.m_finalHomeOrWorkCount + (int)district.m_playerData.m_finalHomeOrWorkCount,
                 AverageLandValue = district.GetLandValue(),
+                Pollution = pollution,
                 WeeklyTouristVisits = (int)district.m_tourist1Data.m_averageCount + (int)district.m_tourist2Data.m_averageCount + (int)district.m_tourist3Data.m_averageCount,
                 Policies = GetPolicies().ToArray(),
             };
