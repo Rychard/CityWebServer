@@ -19,7 +19,7 @@ namespace CityWebServer.Extensibility.Responses
         {
             byte[] buf = Encoding.UTF8.GetBytes(_content);
 
-            response.StatusCode = (int) _statusCode;
+            response.StatusCode = (int)_statusCode;
             response.ContentType = "text/html";
             response.ContentLength64 = buf.Length;
             response.OutputStream.Write(buf, 0, buf.Length);

@@ -127,12 +127,12 @@ namespace CityWebServer.RequestHandlers
                 {
                     districtInfo.TotalBuildingCount = buildings.Where(obj => obj.Key == districtID).Sum(obj => obj.Value);
                     districtInfo.TotalVehicleCount = vehicles.Where(obj => obj.Key == districtID).Sum(obj => obj.Value);
-                    districtInfoList.Add(districtInfo);    
+                    districtInfoList.Add(districtInfo);
                 }
             }
 
             var simulationManager = Singleton<SimulationManager>.instance;
-            
+
             var cityInfo = new CityInfo
             {
                 Name = simulationManager.m_metaData.m_CityName,

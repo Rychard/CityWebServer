@@ -66,7 +66,7 @@ namespace CityWebServer.RequestHandlers
 
                 var stops = line.CountStops(0); // The parameter is never used.
                 var vehicles = line.CountVehicles(0); // The parameter is never used.
-                
+
                 var lineModel = new PublicTransportLine
                 {
                     Name = String.Format("{0} {1}", line.Info.name, (int)line.m_lineNumber),

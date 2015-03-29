@@ -66,7 +66,7 @@ namespace CityWebServer
             foreach (var path in modPaths)
             {
                 var testPath = Path.Combine(path, "wwwroot");
-                
+
                 if (Directory.Exists(testPath))
                 {
                     return testPath;
@@ -130,7 +130,6 @@ namespace CityWebServer
             List<Type> handlers = new List<Type>();
             AppendPotentialHandlers(assembly, handlers);
             RegisterHandlers(handlers);
-
         }
 
         private void InitializeServer()
@@ -250,7 +249,7 @@ namespace CityWebServer
             }
 
             var wwwroot = GetWebRoot();
-            
+
             // At this point, we can guarantee that we don't need any game data, so we can safely start a new thread to perform the remaining tasks.
             ServiceFileRequest(wwwroot, request, response);
         }
@@ -311,7 +310,7 @@ namespace CityWebServer
 
                 try
                 {
-                    handlerInstance = (IRequestHandler) Activator.CreateInstance(handler);
+                    handlerInstance = (IRequestHandler)Activator.CreateInstance(handler);
 
                     // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
                     exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
@@ -352,7 +351,7 @@ namespace CityWebServer
         private static IEnumerable<Type> FindHandlersInLoadedAssemblies()
         {
             List<Type> handlers = new List<Type>();
-            
+
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
             foreach (var assembly in assemblies)

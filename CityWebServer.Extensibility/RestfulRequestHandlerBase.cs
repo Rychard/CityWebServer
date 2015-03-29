@@ -11,7 +11,8 @@ namespace CityWebServer.Extensibility
         protected int _priority;
         protected String _mainPath;
 
-        public RestfulRequestHandlerBase(Guid handlerID, String name, String author, int priority, String mainPath) : base()
+        public RestfulRequestHandlerBase(Guid handlerID, String name, String author, int priority, String mainPath)
+            : base()
         {
             _handlerID = handlerID;
             _name = name;
@@ -21,9 +22,13 @@ namespace CityWebServer.Extensibility
         }
 
         public override Guid HandlerID { get { return _handlerID; } }
+
         public override int Priority { get { return _priority; } }
+
         public override string Name { get { return _name; } }
+
         public override string Author { get { return _author; } }
+
         public override string MainPath { get { return _mainPath; } }
 
         public override bool ShouldHandle(HttpListenerRequest request)
@@ -37,12 +42,16 @@ namespace CityWebServer.Extensibility
             {
                 case "GET":
                     return HandleGetRequest(request);
+
                 case "POST":
                     return HandlePostRequest(request);
+
                 case "PUT":
                     return HandlePutRequest(request);
+
                 case "DELETE":
                     return HandleDeleteRequest(request);
+
                 default:
                     return JsonResponse("400 Bad Request", HttpStatusCode.BadRequest);
             }

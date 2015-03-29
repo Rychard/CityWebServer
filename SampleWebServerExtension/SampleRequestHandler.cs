@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Text;
 using CityWebServer.Extensibility;
 
 namespace SampleWebServerExtension

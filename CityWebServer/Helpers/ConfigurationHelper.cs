@@ -132,15 +132,19 @@ namespace CityWebServer.Helpers
                     switch (t)
                     {
                         case "string":
-                            return typeof (string);
+                            return typeof(string);
+
                         case "int":
-                            return typeof (int);
+                            return typeof(int);
+
                         case "float":
-                            return typeof (float);
+                            return typeof(float);
+
                         case "double":
-                            return typeof (double);
+                            return typeof(double);
+
                         default:
-                            return typeof (object);
+                            return typeof(object);
                     }
                 }
                 return null;

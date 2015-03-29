@@ -29,7 +29,8 @@ namespace CityWebServer
             _listener.Start();
         }
 
-        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params String[] prefixes) : this(prefixes, method)
+        public WebServer(Action<HttpListenerRequest, HttpListenerResponse> method, params String[] prefixes)
+            : this(prefixes, method)
         {
         }
 
@@ -57,12 +58,11 @@ namespace CityWebServer
                 {
                     var request = ctx.Request;
                     var response = ctx.Response;
-                    
+
                     // Allow accessing pages from pages hosted from another local web-server, such as IIS, for instance.
                     response.AddHeader("Access-Control-Allow-Origin", "http://localhost");
 
-                    _responderMethod(request, response);    
-                    
+                    _responderMethod(request, response);
                 }
             }
             catch { } // Suppress any exceptions.

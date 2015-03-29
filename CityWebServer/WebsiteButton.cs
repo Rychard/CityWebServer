@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using CityWebServer.Helpers;
-using ColossalFramework.Plugins;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
@@ -12,7 +11,7 @@ namespace CityWebServer
     /// Adds a button to the UI for quick access to the website.
     /// </summary>
     /// <remarks>
-    /// Most/All of this code was sourced from here: 
+    /// Most/All of this code was sourced from here:
     /// https://github.com/AlexanderDzhoganov/Skylines-FPSCamera/blob/master/FPSCamera/Mod.cs
     /// </remarks>
     public class WebsiteButton : LoadingExtensionBase
@@ -126,9 +125,9 @@ namespace CityWebServer
                 var directory = System.IO.Path.GetDirectoryName(filePath);
                 if (!String.IsNullOrEmpty(directory) && System.IO.Directory.Exists(directory))
                 {
-                    Process.Start(directory);    
+                    Process.Start(directory);
                 }
-            } 
+            }
             else if (!Input.GetKey(KeyCode.LeftShift))
             {
                 // Accept clicks only when shift isn't pressed.

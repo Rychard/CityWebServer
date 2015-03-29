@@ -5,7 +5,7 @@ using System.Linq;
 // Source: https://raw.githubusercontent.com/cymen/ApacheMimeTypesToDotNet/master/ApacheMimeTypes.cs
 namespace ApacheMimeTypes
 {
-    class Apache
+    internal class Apache
     {
         private static Dictionary<String, String> _mimeTypes = new Dictionary<String, String>
 		{

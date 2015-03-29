@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CityWebServer.Extensibility;
-using ColossalFramework;
-using ColossalFramework.IO;
 using ColossalFramework.Plugins;
 
 namespace CityWebServer.Helpers

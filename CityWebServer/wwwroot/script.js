@@ -44,18 +44,16 @@ function deleteUnusedSeries(chart, seriesArray)
     //        j = -1;
     //    }
 
-
-        
     //}
 }
 
-function addOrUpdateSeries(theChart, seriesName, value, valueName) 
+function addOrUpdateSeries(theChart, seriesName, value, valueName)
 {
     var series;
     var matchFound = false;
-    if(theChart.series.length > 0) 
-    {            
-        for(var s = 0; s < theChart.series.length; s++) 
+    if(theChart.series.length > 0)
+    {
+        for(var s = 0; s < theChart.series.length; s++)
         {
             if(theChart.series[s].name == seriesName)
             {
@@ -65,33 +63,33 @@ function addOrUpdateSeries(theChart, seriesName, value, valueName)
             }
         }
     }
-    
+
     if(!matchFound)
     {
         //console.log("Adding series: " + seriesName);
-        var seriesOptions = { 
-            id: seriesName, 
-            name: seriesName, 
-            data: [{ name: valueName, y: value}] 
+        var seriesOptions = {
+            id: seriesName,
+            name: seriesName,
+            data: [{ name: valueName, y: value}]
         };
         series = theChart.addSeries(seriesOptions, false);
-    } 
-    else 
+    }
+    else
     {
         var shift = series.data.length > 20;
         series.addPoint(value, true, shift);
-    }    
+    }
 }
 
 function updateChart(vm, chart)
 {
     var updatedSeries = [];
     var districts = vm.Districts();
-    for(var i = 0; i < districts.length; i++) 
+    for(var i = 0; i < districts.length; i++)
     {
-        var district = districts[i];        
+        var district = districts[i];
         var districtName = district.DistrictName();
-        
+
         var seriesName = districtName + " - Population";
         var population = district.TotalPopulationCount();
         addOrUpdateSeries(chart, seriesName, population, vm.Time());
