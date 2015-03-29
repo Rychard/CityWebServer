@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -16,11 +17,9 @@ using JetBrains.Annotations;
 namespace CityWebServer
 {
     [UsedImplicitly]
-    public class IntegratedWebServer : ThreadingExtensionBase
+    public class IntegratedWebServer : ThreadingExtensionBase, IWebServer
     {
         private const String WebServerPortKey = "webServerPort";
-        private static readonly Type RequestHandlerType = typeof(IRequestHandler);
-
         private static List<String> _logLines;
         private static string _endpoint;
 
@@ -104,32 +103,9 @@ namespace CityWebServer
         /// <param name="threading">The threading.</param>
         public override void OnCreated(IThreading threading)
         {
-            this.InitializeServer();
-            _requestHandlers = new List<IRequestHandler>();
-            RegisterAssemblyLoader();
-            RegisterHandlers();
-
+            InitializeServer();
+            
             base.OnCreated(threading);
-        }
-
-        private void RegisterAssemblyLoader()
-        {
-            AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
-            AppDomain.CurrentDomain.DomainUnload += OnAppDomainUnload;
-        }
-
-        private void OnAppDomainUnload(object sender, EventArgs e)
-        {
-            // TODO: Unload handlers
-        }
-
-        private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            Assembly assembly = args.LoadedAssembly;
-
-            List<Type> handlers = new List<Type>();
-            AppendPotentialHandlers(assembly, handlers);
-            RegisterHandlers(handlers);
         }
 
         private void InitializeServer()
@@ -163,6 +139,17 @@ namespace CityWebServer
             _server = ws;
             _server.Run();
             LogMessage("Server Initialized.");
+
+            _requestHandlers = new List<IRequestHandler>();
+
+            try
+            {
+                RegisterHandlers();
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogException(ex);
+            }
         }
 
         #endregion Create
@@ -297,6 +284,13 @@ namespace CityWebServer
 
         private void RegisterHandlers(IEnumerable<Type> handlers)
         {
+            if (handlers == null) { return; }
+
+            if (_requestHandlers == null)
+            {
+                _requestHandlers = new List<IRequestHandler>();
+            }
+
             foreach (var handler in handlers)
             {
                 // Only register handlers that we don't already have an instance of.
@@ -310,7 +304,21 @@ namespace CityWebServer
 
                 try
                 {
-                    handlerInstance = (IRequestHandler)Activator.CreateInstance(handler);
+                    if (typeof(RequestHandlerBase).IsAssignableFrom(handler))
+                    {
+                        handlerInstance = (RequestHandlerBase)Activator.CreateInstance(handler, this);
+                    }
+                    else
+                    {
+                        handlerInstance = (IRequestHandler)Activator.CreateInstance(handler);
+                    }
+
+                    if (handlerInstance == null)
+                    {
+                        LogMessage(String.Format("Request Handler ({0}) could not be instantiated!", handler.Name));
+                        continue;
+                    }
+
 
                     // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
                     exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
@@ -350,47 +358,46 @@ namespace CityWebServer
         /// </summary>
         private static IEnumerable<Type> FindHandlersInLoadedAssemblies()
         {
-            List<Type> handlers = new List<Type>();
-
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
             foreach (var assembly in assemblies)
             {
-                AppendPotentialHandlers(assembly, handlers);
+                var handlers = FetchHandlers(assembly);
+                foreach (var handler in handlers)
+                {
+                    yield return handler;
+                }
             }
-
-            return handlers;
         }
 
-        private static void AppendPotentialHandlers(Assembly assembly, ICollection<Type> handlers)
+        private static IEnumerable<Type> FetchHandlers(Assembly assembly)
         {
             var assemblyName = assembly.GetName().Name;
 
             // Skip any assemblies that we don't anticipate finding anything in.
-            if (IgnoredAssemblies.Contains(assemblyName))
-            {
-                return;
-            }
+            if (IgnoredAssemblies.Contains(assemblyName)) { yield break; }
 
-            int typeCount = 0;
+            Type[] types = new Type[0];
             try
             {
-                var types = assembly.GetTypes().ToList();
-                typeCount = types.Count;
-                foreach (var type in types)
+                types = assembly.GetTypes();
+            }
+            catch { }
+            
+            foreach (var type in types)
+            {
+                Boolean isValid = false;
+                try
                 {
-                    if (RequestHandlerType.IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
-                    {
-                        handlers.Add(type);
-                    }
+                    isValid = typeof (IRequestHandler).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract;
+                }
+                catch { }
+
+                if (isValid)
+                {
+                    yield return type;
                 }
             }
-            catch (Exception ex)
-            {
-                LogMessage(ex.ToString());
-            }
-            LogMessage(String.Format("Found {0} types in {1}, of which {2} were potential request handlers.", typeCount,
-                assembly.GetName().Name, handlers.Count));
         }
 
         #region Reserved Endpoint Handlers

@@ -8,34 +8,8 @@ namespace CityWebServer.RequestHandlers
 {
     public class BudgetRequestHandler : RequestHandlerBase
     {
-        public override Guid HandlerID
+        public BudgetRequestHandler(IWebServer server) : base(server, new Guid("87205a0d-1b53-47bd-91fa-9cddf0a3bd9e"), "Budget", "Rychard", 100, "/Budget")
         {
-            get { return new Guid("87205a0d-1b53-47bd-91fa-9cddf0a3bd9e"); }
-        }
-
-        public override int Priority
-        {
-            get { return 100; }
-        }
-
-        public override String Name
-        {
-            get { return "Budget"; }
-        }
-
-        public override String Author
-        {
-            get { return "Rychard"; }
-        }
-
-        public override String MainPath
-        {
-            get { return "/Budget"; }
-        }
-
-        public override Boolean ShouldHandle(HttpListenerRequest request)
-        {
-            return (request.Url.AbsolutePath.Equals("/Budget", StringComparison.OrdinalIgnoreCase));
         }
 
         public override IResponseFormatter Handle(HttpListenerRequest request)

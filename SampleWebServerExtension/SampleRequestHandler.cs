@@ -1,39 +1,15 @@
 ﻿using System;
 using System.Net;
 using CityWebServer.Extensibility;
+using JetBrains.Annotations;
 
 namespace SampleWebServerExtension
 {
+    [UsedImplicitly]
     public class SampleRequestHandler : RequestHandlerBase
     {
-        public override Guid HandlerID
+        public SampleRequestHandler(IWebServer server) : base(server, new Guid("1a255904-bf72-406e-b5e2-c5a43fdd9bba"), "Sample", "Rychard", 100, "/Sample")
         {
-            get { return new Guid("1a255904-bf72-406e-b5e2-c5a43fdd9bba"); }
-        }
-
-        public override int Priority
-        {
-            get { return 100; }
-        }
-
-        public override String Name
-        {
-            get { return "Sample"; }
-        }
-
-        public override String Author
-        {
-            get { return "Rychard"; }
-        }
-
-        public override String MainPath
-        {
-            get { return "/Sample"; }
-        }
-
-        public override Boolean ShouldHandle(HttpListenerRequest request)
-        {
-            return (request.Url.AbsolutePath.Equals("/Sample", StringComparison.OrdinalIgnoreCase));
         }
 
         public override IResponseFormatter Handle(HttpListenerRequest request)

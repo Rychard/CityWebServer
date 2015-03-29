@@ -2,52 +2,19 @@
 using System.Net;
 using CityWebServer.Extensibility;
 using CityWebServer.Retrievers;
+using JetBrains.Annotations;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class MessageRequestHandler : RequestHandlerBase, ILogAppender
+    [UsedImplicitly]
+    public class MessageRequestHandler : RequestHandlerBase
     {
-        public event EventHandler<LogAppenderEventArgs> LogMessage;
-
-        private void OnLogMessage(String message)
-        {
-            var handler = LogMessage;
-            if (handler != null)
-            {
-                handler(this, new LogAppenderEventArgs(message));
-            }
-        }
-
-        public override Guid HandlerID
-        {
-            get { return new Guid("b4efeced-1dbb-435a-8999-9f8adaa5036e"); }
-        }
-
-        public override int Priority
-        {
-            get { return 100; }
-        }
-
-        public override String Name
-        {
-            get { return "Chirper Messages"; }
-        }
-
-        public override String Author
-        {
-            get { return "Rychard"; }
-        }
-
-        public override String MainPath
-        {
-            get { return "/Messages"; }
-        }
-
         private readonly ChirpRetriever _chirpRetriever;
 
-        public override Boolean ShouldHandle(HttpListenerRequest request)
+        public MessageRequestHandler(IWebServer server) : base(server, new Guid("b4efeced-1dbb-435a-8999-9f8adaa5036e"), "Chirper Messages", "Rychard", 100, "/Messages")
         {
-            return (request.Url.AbsolutePath.Equals("/Messages", StringComparison.OrdinalIgnoreCase));
+            _chirpRetriever = new ChirpRetriever();
+            _chirpRetriever.LogMessage += (sender, args) => { OnLogMessage(args.LogLine); };
         }
 
         public override IResponseFormatter Handle(HttpListenerRequest request)
@@ -56,12 +23,6 @@ namespace CityWebServer.RequestHandlers
             var messages = _chirpRetriever.Messages;
 
             return JsonResponse(messages);
-        }
-
-        public MessageRequestHandler()
-        {
-            _chirpRetriever = new ChirpRetriever();
-            _chirpRetriever.LogMessage += (sender, args) => { OnLogMessage(args.LogLine); };
         }
     }
 }

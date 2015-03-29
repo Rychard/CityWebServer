@@ -4,39 +4,15 @@ using System.Linq;
 using System.Net;
 using CityWebServer.Extensibility;
 using ColossalFramework;
+using JetBrains.Annotations;
 
 namespace CityWebServer.RequestHandlers
 {
+    [UsedImplicitly]
     public class VehicleRequestHandler : RequestHandlerBase
     {
-        public override Guid HandlerID
+        public VehicleRequestHandler(IWebServer server) : base(server, new Guid("2be6546a-d416-4939-8e08-1d0b739be835"), "Vehicle", "Rychard", 100, "/Vehicle")
         {
-            get { return new Guid("2be6546a-d416-4939-8e08-1d0b739be835"); }
-        }
-
-        public override int Priority
-        {
-            get { return 100; }
-        }
-
-        public override String Name
-        {
-            get { return "Vehicle"; }
-        }
-
-        public override String Author
-        {
-            get { return "Rychard"; }
-        }
-
-        public override String MainPath
-        {
-            get { return "/Vehicle"; }
-        }
-
-        public override Boolean ShouldHandle(HttpListenerRequest request)
-        {
-            return (request.Url.AbsolutePath.StartsWith("/Vehicle", StringComparison.OrdinalIgnoreCase));
         }
 
         public override IResponseFormatter Handle(HttpListenerRequest request)

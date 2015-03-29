@@ -8,34 +8,8 @@ namespace CityWebServer.RequestHandlers
 {
     public class BuildingRequestHandler : RequestHandlerBase
     {
-        public override Guid HandlerID
+        public BuildingRequestHandler(IWebServer server) : base(server, new Guid("03897cb0-d53f-4189-a613-e7d22705dc2f"), "Building", "Rychard", 100, "/Building")
         {
-            get { return new Guid("03897cb0-d53f-4189-a613-e7d22705dc2f"); }
-        }
-
-        public override int Priority
-        {
-            get { return 100; }
-        }
-
-        public override String Name
-        {
-            get { return "Vehicle"; }
-        }
-
-        public override String Author
-        {
-            get { return "Rychard"; }
-        }
-
-        public override String MainPath
-        {
-            get { return "/Building"; }
-        }
-
-        public override Boolean ShouldHandle(HttpListenerRequest request)
-        {
-            return (request.Url.AbsolutePath.StartsWith("/Building", StringComparison.OrdinalIgnoreCase));
         }
 
         public override IResponseFormatter Handle(HttpListenerRequest request)

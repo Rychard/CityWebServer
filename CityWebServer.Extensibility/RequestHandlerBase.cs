@@ -4,27 +4,68 @@ using CityWebServer.Extensibility.Responses;
 
 namespace CityWebServer.Extensibility
 {
-    public abstract class RequestHandlerBase : IRequestHandler
+    public abstract class RequestHandlerBase : IRequestHandler, ILogAppender
     {
+        #region ILogAppender Implementation
+
+        public event EventHandler<LogAppenderEventArgs> LogMessage;
+
+        protected void OnLogMessage(String message)
+        {
+            var handler = LogMessage;
+            if (handler != null)
+            {
+                handler(this, new LogAppenderEventArgs(message));
+            }
+        }
+
+        #endregion ILogAppender Implementation
+
+        protected readonly IWebServer _server;
+        protected Guid _handlerID;
+        protected int _priority;
+        protected String _name;
+        protected String _author;
+        protected String _mainPath;
+
+        private RequestHandlerBase()
+        {
+        }
+
+        protected RequestHandlerBase(IWebServer server, Guid handlerID, String name, String author, int priority, String mainPath)
+        {
+            _server = server;
+            _handlerID = handlerID;
+            _name = name;
+            _author = author;
+            _priority = priority;
+            _mainPath = mainPath;
+        }
+
+        /// <summary>
+        /// Gets the server that is currently servicing this instance.
+        /// </summary>
+        public virtual IWebServer Server { get { return _server; } }
+
         /// <summary>
         /// Gets a unique identifier for this handler.  Only one handler can be loaded with a given identifier.
         /// </summary>
-        public abstract Guid HandlerID { get; }
+        public virtual Guid HandlerID { get { return _handlerID; } }
 
         /// <summary>
         /// Gets the priority of this request handler.  A request will be handled by the request handler with the lowest priority.
         /// </summary>
-        public abstract int Priority { get; }
+        public virtual int Priority { get { return _priority; } }
 
         /// <summary>
         /// Gets the display name of this request handler.
         /// </summary>
-        public abstract String Name { get; }
+        public virtual String Name { get { return _name; } }
 
         /// <summary>
         /// Gets the author of this request handler.
         /// </summary>
-        public abstract String Author { get; }
+        public virtual String Author { get { return _author; } }
 
         /// <summary>
         /// Gets the absolute path to the main page for this request handler.  Your class is responsible for handling requests at this path.
@@ -32,12 +73,15 @@ namespace CityWebServer.Extensibility
         /// <remarks>
         /// When set to a value other than <c>null</c>, the Web Server will show this url as a link on the home page.
         /// </remarks>
-        public abstract String MainPath { get; }
+        public virtual String MainPath { get { return _mainPath; } }
 
         /// <summary>
         /// Returns a value that indicates whether this handler is capable of servicing the given request.
         /// </summary>
-        public abstract Boolean ShouldHandle(HttpListenerRequest request);
+        public virtual Boolean ShouldHandle(HttpListenerRequest request)
+        {
+            return (request.Url.AbsolutePath.Equals(_mainPath, StringComparison.OrdinalIgnoreCase));
+        }
 
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.

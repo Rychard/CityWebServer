@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CityWebServer.Extensibility
 {
@@ -8,6 +9,8 @@ namespace CityWebServer.Extensibility
     /// </summary>
     public interface IRequestHandler
     {
+        IWebServer Server { get; }
+
         /// <summary>
         /// Gets a unique identifier for this handler.  Only one handler can be loaded with a given identifier.
         /// </summary>

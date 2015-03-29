@@ -6,85 +6,15 @@ using CityWebServer.Extensibility;
 using CityWebServer.Helpers;
 using CityWebServer.Models;
 using ColossalFramework;
+using JetBrains.Annotations;
 
 namespace CityWebServer.RequestHandlers
 {
+    [UsedImplicitly]
     public class CityInfoRequestHandler : RequestHandlerBase
     {
-        public override Guid HandlerID
+        public CityInfoRequestHandler(IWebServer server) : base(server, new Guid("eeada0d0-f1d2-43b0-9595-2a6a4d917631"), "City Info", "Rychard", 100, "/CityInfo")
         {
-            get { return new Guid("eeada0d0-f1d2-43b0-9595-2a6a4d917631"); }
-        }
-
-        public override int Priority
-        {
-            get { return 100; }
-        }
-
-        public override String Name
-        {
-            get { return "City Info"; }
-        }
-
-        public override String Author
-        {
-            get { return "Rychard"; }
-        }
-
-        public override String MainPath
-        {
-            get { return "/CityInfo"; }
-        }
-
-        public override Boolean ShouldHandle(HttpListenerRequest request)
-        {
-            return (request.Url.AbsolutePath.Equals("/CityInfo", StringComparison.OrdinalIgnoreCase));
-        }
-
-        private Dictionary<int, int> GetBuildingBreakdownByDistrict()
-        {
-            var districtManager = Singleton<DistrictManager>.instance;
-
-            Dictionary<int, int> districtBuildings = new Dictionary<int, int>();
-            BuildingManager instance = Singleton<BuildingManager>.instance;
-            foreach (Building building in instance.m_buildings.m_buffer)
-            {
-                if (building.m_flags == Building.Flags.None) { continue; }
-                var districtID = (int)districtManager.GetDistrict(building.m_position);
-                if (districtBuildings.ContainsKey(districtID))
-                {
-                    districtBuildings[districtID]++;
-                }
-                else
-                {
-                    districtBuildings.Add(districtID, 1);
-                }
-            }
-            return districtBuildings;
-        }
-
-        private Dictionary<int, int> GetVehicleBreakdownByDistrict()
-        {
-            var districtManager = Singleton<DistrictManager>.instance;
-
-            Dictionary<int, int> districtVehicles = new Dictionary<int, int>();
-            VehicleManager vehicleManager = Singleton<VehicleManager>.instance;
-            foreach (Vehicle vehicle in vehicleManager.m_vehicles.m_buffer)
-            {
-                if (vehicle.m_flags != Vehicle.Flags.None)
-                {
-                    var districtID = (int)districtManager.GetDistrict(vehicle.GetLastFramePosition());
-                    if (districtVehicles.ContainsKey(districtID))
-                    {
-                        districtVehicles[districtID]++;
-                    }
-                    else
-                    {
-                        districtVehicles.Add(districtID, 1);
-                    }
-                }
-            }
-            return districtVehicles;
         }
 
         public override IResponseFormatter Handle(HttpListenerRequest request)
@@ -142,6 +72,52 @@ namespace CityWebServer.RequestHandlers
             };
 
             return JsonResponse(cityInfo);
+        }
+        
+        private Dictionary<int, int> GetBuildingBreakdownByDistrict()
+        {
+            var districtManager = Singleton<DistrictManager>.instance;
+
+            Dictionary<int, int> districtBuildings = new Dictionary<int, int>();
+            BuildingManager instance = Singleton<BuildingManager>.instance;
+            foreach (Building building in instance.m_buildings.m_buffer)
+            {
+                if (building.m_flags == Building.Flags.None) { continue; }
+                var districtID = (int)districtManager.GetDistrict(building.m_position);
+                if (districtBuildings.ContainsKey(districtID))
+                {
+                    districtBuildings[districtID]++;
+                }
+                else
+                {
+                    districtBuildings.Add(districtID, 1);
+                }
+            }
+            return districtBuildings;
+        }
+
+        private Dictionary<int, int> GetVehicleBreakdownByDistrict()
+        {
+            var districtManager = Singleton<DistrictManager>.instance;
+
+            Dictionary<int, int> districtVehicles = new Dictionary<int, int>();
+            VehicleManager vehicleManager = Singleton<VehicleManager>.instance;
+            foreach (Vehicle vehicle in vehicleManager.m_vehicles.m_buffer)
+            {
+                if (vehicle.m_flags != Vehicle.Flags.None)
+                {
+                    var districtID = (int)districtManager.GetDistrict(vehicle.GetLastFramePosition());
+                    if (districtVehicles.ContainsKey(districtID))
+                    {
+                        districtVehicles[districtID]++;
+                    }
+                    else
+                    {
+                        districtVehicles.Add(districtID, 1);
+                    }
+                }
+            }
+            return districtVehicles;
         }
 
         private IEnumerable<int> GetDistrictsFromRequest(HttpListenerRequest request)
