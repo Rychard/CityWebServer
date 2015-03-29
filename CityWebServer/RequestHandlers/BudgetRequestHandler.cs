@@ -8,7 +8,8 @@ namespace CityWebServer.RequestHandlers
 {
     public class BudgetRequestHandler : RequestHandlerBase
     {
-        public BudgetRequestHandler(IWebServer server) : base(server, new Guid("87205a0d-1b53-47bd-91fa-9cddf0a3bd9e"), "Budget", "Rychard", 100, "/Budget")
+        public BudgetRequestHandler(IWebServer server)
+            : base(server, new Guid("87205a0d-1b53-47bd-91fa-9cddf0a3bd9e"), "Budget", "Rychard", 100, "/Budget")
         {
         }
 

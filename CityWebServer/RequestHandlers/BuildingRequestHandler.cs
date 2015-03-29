@@ -8,7 +8,8 @@ namespace CityWebServer.RequestHandlers
 {
     public class BuildingRequestHandler : RequestHandlerBase
     {
-        public BuildingRequestHandler(IWebServer server) : base(server, new Guid("03897cb0-d53f-4189-a613-e7d22705dc2f"), "Building", "Rychard", 100, "/Building")
+        public BuildingRequestHandler(IWebServer server)
+            : base(server, new Guid("03897cb0-d53f-4189-a613-e7d22705dc2f"), "Building", "Rychard", 100, "/Building")
         {
         }
 

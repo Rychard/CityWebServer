@@ -11,7 +11,8 @@ namespace CityWebServer.RequestHandlers
     [UsedImplicitly]
     public class VehicleRequestHandler : RequestHandlerBase
     {
-        public VehicleRequestHandler(IWebServer server) : base(server, new Guid("2be6546a-d416-4939-8e08-1d0b739be835"), "Vehicle", "Rychard", 100, "/Vehicle")
+        public VehicleRequestHandler(IWebServer server)
+            : base(server, new Guid("2be6546a-d416-4939-8e08-1d0b739be835"), "Vehicle", "Rychard", 100, "/Vehicle")
         {
         }
 

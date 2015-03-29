@@ -13,7 +13,8 @@ namespace CityWebServer.RequestHandlers
     [UsedImplicitly]
     public class CityInfoRequestHandler : RequestHandlerBase
     {
-        public CityInfoRequestHandler(IWebServer server) : base(server, new Guid("eeada0d0-f1d2-43b0-9595-2a6a4d917631"), "City Info", "Rychard", 100, "/CityInfo")
+        public CityInfoRequestHandler(IWebServer server)
+            : base(server, new Guid("eeada0d0-f1d2-43b0-9595-2a6a4d917631"), "City Info", "Rychard", 100, "/CityInfo")
         {
         }
 
@@ -73,7 +74,7 @@ namespace CityWebServer.RequestHandlers
 
             return JsonResponse(cityInfo);
         }
-        
+
         private Dictionary<int, int> GetBuildingBreakdownByDistrict()
         {
             var districtManager = Singleton<DistrictManager>.instance;

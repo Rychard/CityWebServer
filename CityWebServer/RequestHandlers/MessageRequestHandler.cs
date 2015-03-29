@@ -11,7 +11,8 @@ namespace CityWebServer.RequestHandlers
     {
         private readonly ChirpRetriever _chirpRetriever;
 
-        public MessageRequestHandler(IWebServer server) : base(server, new Guid("b4efeced-1dbb-435a-8999-9f8adaa5036e"), "Chirper Messages", "Rychard", 100, "/Messages")
+        public MessageRequestHandler(IWebServer server)
+            : base(server, new Guid("b4efeced-1dbb-435a-8999-9f8adaa5036e"), "Chirper Messages", "Rychard", 100, "/Messages")
         {
             _chirpRetriever = new ChirpRetriever();
             _chirpRetriever.LogMessage += (sender, args) => { OnLogMessage(args.LogLine); };

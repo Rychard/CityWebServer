@@ -5,8 +5,9 @@ namespace CityWebServer.Extensibility
 {
     public abstract class RestfulRequestHandlerBase : RequestHandlerBase
     {
-        public RestfulRequestHandlerBase(IWebServer server, Guid handlerID, String name, String author, int priority, String mainPath) : base(server, handlerID, name, author, priority, mainPath)
-        {   
+        public RestfulRequestHandlerBase(IWebServer server, Guid handlerID, String name, String author, int priority, String mainPath)
+            : base(server, handlerID, name, author, priority, mainPath)
+        {
         }
 
         public override Guid HandlerID { get { return _handlerID; } }

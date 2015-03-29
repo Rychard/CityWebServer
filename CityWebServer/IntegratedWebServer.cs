@@ -103,7 +103,7 @@ namespace CityWebServer
         public override void OnCreated(IThreading threading)
         {
             InitializeServer();
-            
+
             base.OnCreated(threading);
         }
 
@@ -318,7 +318,6 @@ namespace CityWebServer
                         continue;
                     }
 
-
                     // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
                     exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
                 }
@@ -382,13 +381,13 @@ namespace CityWebServer
                 types = assembly.GetTypes();
             }
             catch { }
-            
+
             foreach (var type in types)
             {
                 Boolean isValid = false;
                 try
                 {
-                    isValid = typeof (IRequestHandler).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract;
+                    isValid = typeof(IRequestHandler).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract;
                 }
                 catch { }
 
