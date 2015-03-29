@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using ColossalFramework.IO;
 using JsonFx.Serialization;
 
 namespace CityWebServer.Helpers
@@ -25,7 +26,30 @@ namespace CityWebServer.Helpers
             var vendorRoot = System.IO.Path.Combine(localApplicationDataRoot, "Colossal Order");
             var appRoot = System.IO.Path.Combine(vendorRoot, "Cities_Skylines");
             var filePath = System.IO.Path.Combine(appRoot, "ModSettings.json");
-            return filePath;
+            
+            // This works for Windows, but not for OSX.
+            if (CanAccess(filePath))
+            {
+                return filePath;
+            }
+
+            // If we just use a filename, it will exist in the root directory of the game's files.  Not ideal, but it'll work.
+            return "ModSettings.json";
+        }
+
+        private static Boolean CanAccess(String filePath)
+        {
+            try
+            {
+                using (var fileStream = System.IO.File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read))
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private static void LoadSettings()
