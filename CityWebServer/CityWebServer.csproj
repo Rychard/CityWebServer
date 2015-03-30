@@ -89,27 +89,25 @@
     <Compile Include="WebsiteButton.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="wwwroot\bootstrap.min.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\highcharts.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="wwwroot\bootstrap.min.css" />
+    <Content Include="wwwroot\app\district-info\district-info.html" />
+    <Content Include="wwwroot\app\district-info\district-info.js" />
     <Content Include="wwwroot\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="wwwroot\jquery-2.1.3.min.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\knockout-3.3.0.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\knockout.mapping-latest.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Content Include="wwwroot\lib\bootstrap.min.js" />
+    <Content Include="wwwroot\lib\domReady.js" />
+    <Content Include="wwwroot\lib\highcharts.js" />
+    <Content Include="wwwroot\lib\jquery-2.1.3.min.js" />
+    <Content Include="wwwroot\lib\knockout-3.3.0.js" />
+    <Content Include="wwwroot\lib\knockout.mapping-latest.js" />
+    <Content Include="wwwroot\lib\text.js" />
+    <Content Include="wwwroot\main.js" />
+    <Content Include="wwwroot\lib\require.js" />
     <Content Include="wwwroot\script.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="wwwroot\style.css" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CityWebServer.Extensibility\CityWebServer.Extensibility.csproj">
