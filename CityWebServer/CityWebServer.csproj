@@ -89,27 +89,6 @@
     <Compile Include="WebsiteButton.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="wwwroot\bootstrap.min.css" />
-    <Content Include="wwwroot\app\district-info\district-info.html" />
-    <Content Include="wwwroot\app\district-info\district-info.js" />
-    <Content Include="wwwroot\index.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\lib\bootstrap.min.js" />
-    <Content Include="wwwroot\lib\domReady.js" />
-    <Content Include="wwwroot\lib\highcharts.js" />
-    <Content Include="wwwroot\lib\jquery-2.1.3.min.js" />
-    <Content Include="wwwroot\lib\knockout-3.3.0.js" />
-    <Content Include="wwwroot\lib\knockout.mapping-latest.js" />
-    <Content Include="wwwroot\lib\text.js" />
-    <Content Include="wwwroot\main.js" />
-    <Content Include="wwwroot\lib\require.js" />
-    <Content Include="wwwroot\script.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="wwwroot\style.css" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\CityWebServer.Extensibility\CityWebServer.Extensibility.csproj">
       <Project>{db96efb4-fa45-4acc-8d51-7ed37065cc79}</Project>
       <Name>CityWebServer.Extensibility</Name>
@@ -121,11 +100,12 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)"
+mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)\wwwroot"
 del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)\$(TargetFileName)"
 xcopy /Y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)"
 xcopy /Y "$(TargetDir)CityWebServer.Extensibility.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)\*.*"
 xcopy /Y "$(TargetDir)Jsonfx.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)\*.*"
-xcopy /Y /E "$(TargetDir)wwwroot\*.*" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)\wwwroot\*.*"</PostBuildEvent>
+xcopy /Y /E "$(SolutionDir)\wwwroot\*.*" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)_$(ProjectName)\wwwroot\*.*"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
