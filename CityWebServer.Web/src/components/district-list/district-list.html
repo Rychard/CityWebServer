@@ -1,0 +1,47 @@
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>District ID</th>
+            <th>Name</th>
+            <th>Population</th>
+            <th>Buildings</th>
+            <th>Vehicles</th>
+            <th>Households (Max)</th>
+            <th>Jobs (Max)</th>
+            <th>Weekly Tourists</th>
+            <th>Land Value</th>
+            <th>Pollution</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <!-- ko foreach: data.Districts -->
+        <tr>
+            <td data-bind="text: DistrictID"></td>
+            <td data-bind="text: DistrictName"></td>
+            <td data-bind="text: TotalPopulationCount"></td>
+            <td data-bind="text: TotalBuildingCount"></td>
+            <td data-bind="text: TotalVehicleCount"></td>
+            <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
+            <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>)</td>
+            <td data-bind="text: WeeklyTouristVisits"></td>
+            <td data-bind="text: '₡' + AverageLandValue()"></td>
+            <td data-bind="text: (Pollution() * 100).toFixed(0) + '%'"></td>
+        </tr>
+        <!-- /ko -->
+    </tbody>
+    <tfoot>
+        <tr>
+            <td></td>
+            <td>Total</td>
+            <td data-bind="text: data.GlobalDistrict.TotalPopulationCount"></td>
+            <td data-bind="text: data.GlobalDistrict.TotalBuildingCount"></td>
+            <td data-bind="text: data.GlobalDistrict.TotalVehicleCount"></td>
+            <td><span data-bind="text: data.GlobalDistrict.CurrentHouseholds"></span> (<span data-bind="text: data.GlobalDistrict.AvailableHouseholds"></span>)</td>
+            <td><span data-bind="text: data.GlobalDistrict.CurrentJobs"></span> (<span data-bind="text: data.GlobalDistrict.AvailableJobs"></span>)</td>
+            <td data-bind="text: data.GlobalDistrict.WeeklyTouristVisits"></td>
+            <td data-bind="text: '₡' + data.GlobalDistrict.AverageLandValue()"></td>
+            <td data-bind="text: (data.GlobalDistrict.Pollution() * 100).toFixed(0) + '%'"></td>
+        </tr>
+    </tfoot>
+</table>
