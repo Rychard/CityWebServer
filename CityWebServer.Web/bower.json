@@ -9,7 +9,8 @@
     "requirejs": "~2.1.11",
     "requirejs-text": "~2.0.10",
     "knockout": "~3.3.0-alpha",
-    "knockout-projections": "~1.1.0"
+    "knockout-projections": "~1.1.0",
+    "knockout-mapping": "~2.4.1"
   },
   "resolutions": {
     "knockout": "~3.3.0-alpha"

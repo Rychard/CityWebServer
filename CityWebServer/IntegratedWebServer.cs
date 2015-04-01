@@ -131,6 +131,7 @@ namespace CityWebServer
                 Configuration.SaveSettings();
             }
 
+
             String endpoint = String.Format("http://localhost:{0}/", port);
             _endpoint = endpoint;
 

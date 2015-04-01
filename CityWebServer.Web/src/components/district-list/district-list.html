@@ -1,3 +1,8 @@
+
+
+
+<!--<pre data-bind="text: ko.toJSON($data.districts)"></pre>-->
+
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
@@ -6,42 +11,48 @@
             <th>Population</th>
             <th>Buildings</th>
             <th>Vehicles</th>
-            <th>Households (Max)</th>
-            <th>Jobs (Max)</th>
+            <th>Households / Max</th>
+            <th>Jobs / Max</th>
             <th>Weekly Tourists</th>
             <th>Land Value</th>
             <th>Pollution</th>
         </tr>
     </thead>
     <tbody>
-
-        <!-- ko foreach: data.Districts -->
+        <!-- ko foreach: $data.districts -->
         <tr>
+            <!--<td colspan="10" data-bind="text: ko.toJSON($data)"></td>-->
             <td data-bind="text: DistrictID"></td>
             <td data-bind="text: DistrictName"></td>
             <td data-bind="text: TotalPopulationCount"></td>
             <td data-bind="text: TotalBuildingCount"></td>
             <td data-bind="text: TotalVehicleCount"></td>
-            <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
-            <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>)</td>
+            <td>
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" data-bind="style: { width: ($data.CurrentHouseholds()/$data.AvailableHouseholds()*100) + '%' }">
+                        <span data-bind="text: $data.CurrentHouseholds() + '/' + $data.AvailableHouseholds()"></span>
+                    </div>
+                </div>
+            </td>
+            <td><span data-bind="text: CurrentJobs"></span> / <span data-bind="text: AvailableJobs"></span></td>
             <td data-bind="text: WeeklyTouristVisits"></td>
             <td data-bind="text: '₡' + AverageLandValue()"></td>
             <td data-bind="text: (Pollution() * 100).toFixed(0) + '%'"></td>
         </tr>
         <!-- /ko -->
     </tbody>
-    <tfoot>
+    <!--<tfoot>
         <tr>
             <td></td>
             <td>Total</td>
-            <td data-bind="text: data.GlobalDistrict.TotalPopulationCount"></td>
-            <td data-bind="text: data.GlobalDistrict.TotalBuildingCount"></td>
-            <td data-bind="text: data.GlobalDistrict.TotalVehicleCount"></td>
-            <td><span data-bind="text: data.GlobalDistrict.CurrentHouseholds"></span> (<span data-bind="text: data.GlobalDistrict.AvailableHouseholds"></span>)</td>
-            <td><span data-bind="text: data.GlobalDistrict.CurrentJobs"></span> (<span data-bind="text: data.GlobalDistrict.AvailableJobs"></span>)</td>
-            <td data-bind="text: data.GlobalDistrict.WeeklyTouristVisits"></td>
-            <td data-bind="text: '₡' + data.GlobalDistrict.AverageLandValue()"></td>
-            <td data-bind="text: (data.GlobalDistrict.Pollution() * 100).toFixed(0) + '%'"></td>
+            <td><span data-bind="text: $data.global.TotalPopulationCount"></span></td>
+            <td><span data-bind="text: global.TotalBuildingCount"></span></td>
+            <td><span data-bind="text: global.TotalVehicleCount"></span></td>
+            <td><span data-bind="text: global.CurrentHouseholds"></span> (<span data-bind="text: global.AvailableHouseholds"></span>)</td>
+            <td><span data-bind="text: global.CurrentJobs"></span> (<span data-bind="text: global.AvailableJobs"></span>)</td>
+            <td><span data-bind="text: global.WeeklyTouristVisits"></span></td>
+            <td><span data-bind="text: '₡' + $root.global.AverageLandValue()"></span></td>
+            <td><span data-bind="text: (global.Pollution() * 100).toFixed(0) + '%'"></span></td>
         </tr>
-    </tfoot>
+    </tfoot>-->
 </table>
