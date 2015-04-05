@@ -18,7 +18,9 @@ namespace CityWebServer
     [UsedImplicitly]
     public class IntegratedWebServer : ThreadingExtensionBase, IWebServer
     {
-        private const String WebServerPortKey = "webServerPort";
+        // Allows an arbitrary number of bindings by appending a number to the end.
+        private const String WebServerHostKey = "webServerHost{0}";
+
         private static List<String> _logLines;
         private static string _endpoint;
 
@@ -117,24 +119,34 @@ namespace CityWebServer
 
             LogMessage("Initializing Server...");
 
-            // I'm not sure how I feel about making the port registration configurable.
-            // Honestly, it sort of defeats the purpose, since other mods could potentially expect it to exist on a specific port.
+            List<String> bindings = new List<String>();
 
-            int port = 8080;
-            if (Configuration.HasSetting(WebServerPortKey))
+            int currentBinding = 1;
+            String currentBindingKey = String.Format(WebServerHostKey, currentBinding);
+            while (Configuration.HasSetting(currentBindingKey))
             {
-                port = Configuration.GetInt(WebServerPortKey);
+                bindings.Add(Configuration.GetString(currentBindingKey));
+                currentBinding++;
+                currentBindingKey = String.Format(WebServerHostKey, currentBinding);
             }
-            else
+
+            // If there are no bindings in the configuration file, we'll need to initialize those values.
+            if (bindings.Count == 0)
             {
-                Configuration.SetInt(WebServerPortKey, port);
+                const String defaultBinding = "http://localhost:8080/";
+                bindings.Add(defaultBinding);
+
+                // If there aren't any bindings, the value of currentBindingKey will never have made it past 1.
+                // As a result, we can just use that.
+                Configuration.SetString(currentBindingKey, defaultBinding);
                 Configuration.SaveSettings();
             }
 
-            String endpoint = String.Format("http://localhost:{0}/", port);
-            _endpoint = endpoint;
+            // The endpoint used internally should always be the first binding in the configuration.
+            // There's no need to use multiple bindings for internal references, we only need a single one.
+            _endpoint = bindings.First();
 
-            WebServer ws = new WebServer(HandleRequest, endpoint);
+            WebServer ws = new WebServer(HandleRequest, bindings.ToArray());
             _server = ws;
             _server.Run();
             LogMessage("Server Initialized.");
