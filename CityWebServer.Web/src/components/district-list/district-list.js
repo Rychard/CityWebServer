@@ -7,7 +7,7 @@ define(['knockout', 'knockout-mapping', 'text!./district-list.html'], function (
         self.endpoint = "http://localhost:8080/CityInfo";
 
         self.lastDate = ko.observable();
-        self.data = ko.observable('');
+        //self.data = ko.observable('');
 
         self.name = ko.observable();
         self.districts = ko.observableArray([]);
@@ -15,27 +15,24 @@ define(['knockout', 'knockout-mapping', 'text!./district-list.html'], function (
 
         self.refresh = function () {
             $.getJSON(self.endpoint, function (response) {
-                //console.log(response);
+                var districtMapping = {
+                    create: function (options) {
+                        var innerModel = komapping.fromJS(options.data);
 
-                komapping.fromJS(response.Districts, {}, self.districts);
-                komapping.fromJS(response.GlobalDistrict, {}, self.global);
+                        var householdsPercentage = '100%';
+                        var current = innerModel.CurrentHouseholds();
+                        var available = innerModel.AvailableHouseholds();
+                        if (current > 0 && available > 0) {
+                            householdsPercentage = (Math.round((current / available) * 100)) + '%';
+                        }
+                        innerModel.HouseholdsPercentage = householdsPercentage;
 
-                self.data(response);
-                console.log(self.data());
+                        return innerModel;
+                    }
+                };
 
-                //self.name(response.name);
-                //self.districts(response.districts);
-                //var model = ko.observable();
-                //komapping.fromJS(response, {}, model);
-                //self.data(model());
-
-                //console.log(model());
-                //if (self.lastDate() !== self.data().Time()) {
-                //    // updateChart(self.data(), chart);
-                //    self.lastDate(self.data().Time());
-                //} else {
-                //    console.log("Same Date: " + self.lastDate());
-                //}
+                komapping.fromJS(response.Districts, districtMapping, self.districts);
+                komapping.fromJS(response.GlobalDistrict, districtMapping, self.global);
             }).fail(function () {
                 console.log("Request failed.  Is the server running?");
             });
@@ -44,15 +41,12 @@ define(['knockout', 'knockout-mapping', 'text!./district-list.html'], function (
         // Update the data once every second.
         self.intervalReference = window.setInterval(function () {
             self.refresh();
-        }, 1000); // Every two seconds.    
+        }, 1000);
     }
 
-    // This runs when the component is torn down. Put here any logic necessary to clean up,
-    // for example cancelling setTimeouts or disposing Knockout subscriptions/computeds.
     DistrictListViewModel.prototype.dispose = function () {
         window.clearinterval(self.intervalReference);
     };
 
     return { viewModel: DistrictListViewModel, template: templateMarkup };
-
 });

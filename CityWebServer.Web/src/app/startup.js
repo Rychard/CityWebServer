@@ -13,6 +13,8 @@ define(['jquery', 'knockout', './router', 'bootstrap', 'knockout-projections'], 
 
   ko.components.register('district-list', { require: 'components/district-list/district-list' });
 
+  ko.components.register('district-card', { require: 'components/district-card/district-card' });
+
   // [Scaffolded component registrations will be inserted here. To retain this feature, don't remove this comment.]
 
   // Start the application

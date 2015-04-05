@@ -19,6 +19,7 @@ namespace CityWebServer
     public class IntegratedWebServer : ThreadingExtensionBase, IWebServer
     {
         private const String WebServerPortKey = "webServerPort";
+        private const String WebServerHostKey = "webServerHost";
         private static List<String> _logLines;
         private static string _endpoint;
 
@@ -131,8 +132,18 @@ namespace CityWebServer
                 Configuration.SaveSettings();
             }
 
+            String host = "localhost";
+            if (Configuration.HasSetting(WebServerHostKey))
+            {
+                host = Configuration.GetString(WebServerHostKey);
+            }
+            else
+            {
+                Configuration.SetString(WebServerHostKey, host);
+                Configuration.SaveSettings();
+            }
 
-            String endpoint = String.Format("http://localhost:{0}/", port);
+            String endpoint = String.Format("http://{0}:{1}/", host, port);
             _endpoint = endpoint;
 
             WebServer ws = new WebServer(HandleRequest, endpoint);
