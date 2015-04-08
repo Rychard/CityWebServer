@@ -21,5 +21,11 @@ namespace CityWebServer.Extensibility
         /// The ID/slug for this plugin. Also used as the root for all request handlers provided by this plugin.
         /// </summary>
         string PluginID { get; }
+
+        /// <summary>
+        /// Whether this plugin should show up in the top menu.
+        /// </summary>
+        bool TopMenu { get; }
+
     }
 }

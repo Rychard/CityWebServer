@@ -21,6 +21,7 @@ namespace CityWebServer.Helpers
         protected string _wwwroot = null;
         protected string _ID = null;
         protected bool _isEnabled = false;
+        protected bool _topMenu = true;
 
         public string Name { get { return _name; } }
         public string PluginName { get { return _name; } }
@@ -30,6 +31,7 @@ namespace CityWebServer.Helpers
         public string PluginID { get { return _ID; } }
         public bool HasStatic { get { return _wwwroot != null; } }
         public bool IsEnabled { get { return _isEnabled; } }
+        public bool TopMenu { get { return _topMenu; } }
         public string WebRoot { get { return _wwwroot; } }
         public List<IRequestHandler> Handlers { get { return _handlers; } }
         
@@ -42,6 +44,7 @@ namespace CityWebServer.Helpers
             _ID = p.PluginID.ToLower().Replace(" ", "_");
             _name = p.PluginName;
             _author = p.PluginAuthor;
+            _topMenu = p.TopMenu;
             _isEnabled = pi.isEnabled;
             if (_isEnabled)
             {
@@ -80,7 +83,6 @@ namespace CityWebServer.Helpers
 
         public bool HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
-            // string localPath = request.Url.AbsolutePath.Replace(String.Format("/{0}/", _ID), "");
             var handler = _handlers.FirstOrDefault(obj => obj.ShouldHandle(request, _ID));
             if (null == handler) return false;
 

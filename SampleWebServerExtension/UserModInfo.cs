@@ -32,6 +32,10 @@ namespace SampleWebServerExtension
             get { return "Adds a sample page to the integrated web server.  Doesn't do anything without it!"; }
         }
 
+        public bool TopMenu {
+            get { return true; } 
+        }
+
         public List<IRequestHandler> GetHandlers(IWebServer server)
         {
             List<IRequestHandler> h = new List<IRequestHandler>();
