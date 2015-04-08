@@ -29,21 +29,19 @@ namespace CityWebServer
         private String _cityName = "CityName";
         private string _wwwroot = null;
         private bool _secondPass = false;
+        private bool _pluginPass = false;
+        private List<UserMod> _mods = null;
 
         /// <summary>
         /// Gets the root endpoint for which the server is configured to service HTTP requests.
         /// </summary>
-        public static String Endpoint
-        {
-            get { return _endpoint; }
-        }
+        public static String Endpoint { get { return _endpoint; } }
         
-        public List<String> LogLines
-        {
-            get { return _logLines; }
-        }
+        public List<String> LogLines { get { return _logLines; } }
 
         public String CityName { get { return _cityName; } }
+
+        public String WebRoot { get { return _wwwroot; } }
         
         /// <summary>
         /// Initializes a new instance of the <see cref="IntegratedWebServer"/> class.
@@ -124,7 +122,11 @@ namespace CityWebServer
             ReleaseServer();
 
             // TODO: Unregister from events (i.e. ILogAppender.LogMessage)
-            _plugins.Clear();
+            if (null != _plugins)
+            {
+                _plugins.Clear();
+                _plugins = null;
+            }
 
             Configuration.SaveSettings();
 
@@ -157,8 +159,16 @@ namespace CityWebServer
             LogMessage("Second pass initialization...");
             try
             {
-                var simulationManager = Singleton<SimulationManager>.instance;
-                _cityName = simulationManager.m_metaData.m_CityName;
+                SimulationManager sm = Singleton<SimulationManager>.instance;
+                if (null != sm)
+                {
+                    _cityName = sm.m_metaData.m_CityName;
+                }
+                else
+                {
+                    LogMessage(String.Format("failed to get city name: null SimulationManager"));
+                    _cityName = "foo";
+                }
             }
             catch (Exception ex)
             {
@@ -169,7 +179,8 @@ namespace CityWebServer
             
             try
             {
-                RegisterPlugins();
+                _mods = UserMod.CollectPlugins();
+                RegisterDefaultPlugins();
             }
             catch (Exception ex)
             {
@@ -192,10 +203,17 @@ namespace CityWebServer
         private void HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             LogMessage(String.Format("{0} {1}", request.HttpMethod, request.RawUrl));
-            if (!_secondPass)
+            if (!_secondPass) SecondPassInit();
+            if (!_pluginPass) RegisterPlugins();
+            /*
             {
-                SecondPassInit();
+                RegisterPlugins();
+                if (!_pluginPass)
+                {
+                    LogMessage("failed to properly scan plugins; will try again next request");
+                }
             }
+             * */
 
             // Get the request handler associated with the current request.
             string url = request.Url.AbsolutePath;
@@ -224,7 +242,7 @@ namespace CityWebServer
                 {
                     String errorBody = String.Format("<h1>An error has occurred!</h1><pre>{0}</pre>", ex);
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", this.Plugins, errorBody);
-                    var template = TemplateHelper.PopulateTemplate("index", tokens);
+                    var template = TemplateHelper.PopulateTemplate("index", _wwwroot, tokens);
 
                     IResponseFormatter errorResponseFormatter = new HtmlResponseFormatter(template);
                     errorResponseFormatter.WriteContent(response);
@@ -276,78 +294,27 @@ namespace CityWebServer
         /// </summary>
         private void RegisterPlugins()
         {
-            if (null != _plugins)
-            {
-                _plugins.Clear();
-                _plugins = null;
-            }
-
-            List<PluginManager.PluginInfo> plugins = new List<PluginManager.PluginInfo>(PluginManager.instance.GetPluginsInfo());
-
-            for (int i = 0; i < plugins.Count; i++)
-            {
-                PluginManager.PluginInfo pi = plugins.ElementAt(i);
-                if (!pi.isEnabled || pi.isBuiltin) continue;
-
-                // get this plugin instance as a standard IUserMod
-                IUserMod[] minsts = null;
-                try
-                {
-                    minsts = pi.GetInstances<IUserMod>();
-                }
-                catch (Exception ex)
-                {
-                    LogMessage(String.Format("IUserMod cast error: {0}", ex));
-                    continue;
-                }
-                if (null == minsts || minsts.Length < 1) continue;
-                if (minsts[0].Name.Equals("Integrated Web Server"))
-                {
-                    // hey it's me! get our web root
-                    string testPath = Path.Combine(pi.modPath, "wwwroot");
-                    if (Directory.Exists(testPath))
-                    {
-                        LogMessage(String.Format("Setting server wwwroot location: {0}", testPath));
-                        _wwwroot = testPath;
-                    }
-                    break;
-                }
-            }
-
-            _plugins = new Dictionary<string, CityWebPluginInfo>();
-            DefaultPlugins(); // register the default fake plugins
-
             LogMessage("Looking for CityWeb plugins...");
-            for (int i = 0; i < plugins.Count; i++)
-            {
-                PluginManager.PluginInfo pi = plugins.ElementAt(i);
-                if (!pi.isEnabled || pi.isBuiltin) continue;
-                             
-                // get this plugin instance as a ICityWebPlugin
-                ICityWebPlugin[] insts = null;
-                try
-                {
-                    insts = pi.GetInstances<ICityWebPlugin>();
-                }
-                catch (Exception ex)
-                {
-                    LogMessage(String.Format("ICityWebPlugin cast error: {0}", ex));
-                    continue;
-                }
-                if (null == insts || insts.Length < 1) continue;
-                LogMessage(String.Format("Loading plugin \"{0}\"", insts[0].PluginName));
+            foreach (UserMod um in _mods) {
+                if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin) continue;
+                if (null == um.Mod) continue;
+
+                LogMessage(String.Format("scanning {0} &lt;{1}&gt;...", um.PluginInfo.name, um.Mod.GetType()));
+                CityWebPlugin cwp = CityWebPlugin.CreateByReflection(um, this);
+                if (null == cwp) continue;
+
+                LogMessage(String.Format("Loading plugin \"{0}\"", cwp.PluginName));
 
                 CityWebPluginInfo cwpi = null;
                 try
                 {
-                    cwpi = new CityWebPluginInfo(insts[0], pi, this);
+                    cwpi = new CityWebPluginInfo(cwp, um.PluginInfo, this);
                 }
                 catch (Exception ex)
                 {
                     LogMessage(String.Format("Failed to load plugin: \"{0}\"", ex));
                     continue;
                 }
-                if (!cwpi.IsEnabled) continue;
 
                 string slug = cwpi.ID;
                 if (slug == null || slug.IsNullOrWhiteSpace())
@@ -375,6 +342,8 @@ namespace CityWebServer
                     }
                 }
             }
+
+            _pluginPass = true;
         }
 
         public IPluginInfo[] Plugins { get { return _plugins.Values.ToArray(); } }
@@ -384,10 +353,36 @@ namespace CityWebServer
             var senderTypeName = sender.GetType().Name;
             LogMessage(logAppenderEventArgs.LogLine, senderTypeName, false);
         }
-
-        private void DefaultPlugins()
+        
+        /// <summary>
+        /// Does some initial setup dependent on scanning plugins and also default plugin registration.
+        /// </summary>
+        private void RegisterDefaultPlugins()
         {
+            if (null != _plugins)
+            {
+                _plugins.Clear();
+                _plugins = null;
+            }
+            foreach (UserMod um in _mods) {
+                if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin) continue;
+                if (null == um.Mod) continue;
+                // ICityWebPlugin foo = minsts[0] as ICityWebPlugin;
+                if (um.Mod.Name.Equals("Integrated Web Server"))
+                {
+                    // hey it's me! get our web root
+                    string testPath = Path.Combine(um.PluginInfo.modPath, "wwwroot");
+                    if (Directory.Exists(testPath))
+                    {
+                        LogMessage(String.Format("Setting server wwwroot location: {0}", testPath));
+                        _wwwroot = testPath;
+                    }
+                    break;
+                }
+            }
+
             LogMessage("adding default plugins");
+            _plugins = new Dictionary<string, CityWebPluginInfo>();
             _plugins.Add("root", new RootPluginInfo(this));
             _plugins.Add("log", new LogPluginInfo(this));
             _plugins.Add("api", new APIPluginInfo(this));

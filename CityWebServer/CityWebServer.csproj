@@ -63,6 +63,8 @@
   <ItemGroup>
     <Compile Include="Helpers\ApacheMimeTypes.cs" />
     <Compile Include="Helpers\CitizenExtensions.cs" />
+    <Compile Include="Helpers\CityWebPlugin.cs" />
+    <Compile Include="Helpers\UserMod.cs" />
     <Compile Include="RequestHandlers\APIPluginInfo.cs" />
     <Compile Include="RequestHandlers\RootPluginInfo.cs" />
     <Compile Include="RequestHandlers\LogPluginInfo.cs" />
