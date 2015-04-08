@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using ApacheMimeTypes;
 using CityWebServer.Extensibility;
 using CityWebServer.Extensibility.Responses;
 using CityWebServer.Helpers;
@@ -56,25 +55,7 @@ namespace CityWebServer
         {
             get { return _endpoint; }
         }
-
-        /// <summary>
-        /// Gets the full path to the directory where static pages are served from.
-        /// </summary>
-        public static String GetWebRoot()
-        {
-            var modPaths = PluginManager.instance.GetPluginsInfo().Select(obj => obj.modPath);
-            foreach (var path in modPaths)
-            {
-                var testPath = Path.Combine(path, "wwwroot");
-
-                if (Directory.Exists(testPath))
-                {
-                    return testPath;
-                }
-            }
-            return null;
-        }
-
+        
         /// <summary>
         /// Gets an array containing all currently registered request handlers.
         /// </summary>
@@ -246,42 +227,11 @@ namespace CityWebServer
                 }
             }
 
-            var wwwroot = GetWebRoot();
+            var wwwroot = StaticResponseFormatter.GetWebRoot("wwwroot");
 
             // At this point, we can guarantee that we don't need any game data, so we can safely start a new thread to perform the remaining tasks.
-            ServiceFileRequest(wwwroot, request, response);
-        }
-
-        private static void ServiceFileRequest(String wwwroot, HttpListenerRequest request, HttpListenerResponse response)
-        {
-            var relativePath = request.Url.AbsolutePath.Substring(1);
-            relativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
-            var absolutePath = Path.Combine(wwwroot, relativePath);
-
-            if (File.Exists(absolutePath))
-            {
-                var extension = Path.GetExtension(absolutePath);
-                response.ContentType = Apache.GetMime(extension);
-                response.StatusCode = 200; // HTTP 200 - SUCCESS
-
-                // Open file, read bytes into buffer and write them to the output stream.
-                using (FileStream fileReader = File.OpenRead(absolutePath))
-                {
-                    byte[] buffer = new byte[4096];
-                    int read;
-                    while ((read = fileReader.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        response.OutputStream.Write(buffer, 0, read);
-                    }
-                }
-            }
-            else
-            {
-                String body = String.Format("No resource is available at the specified filepath: {0}", absolutePath);
-
-                IResponseFormatter notFoundResponseFormatter = new PlainTextResponseFormatter(body, HttpStatusCode.NotFound);
-                notFoundResponseFormatter.WriteContent(response);
-            }
+            IResponseFormatter staticFile = new StaticResponseFormatter(wwwroot, request);
+            staticFile.WriteContent(response);
         }
 
         /// <summary>
