@@ -16,10 +16,11 @@ namespace CityWebServer.RequestHandlers
         public LogPluginInfo(IWebServer server)
         {
             _ID = "log";
-            _name = "System Log";
+            _name = "Server Log";
             _author = "Rychard";
             _isEnabled = true;
-            _wwwroot = null;
+            _wwwroot = server.WebRoot;
+            _topMenu = true;
 
             _handlers = new List<IRequestHandler>();
             _handlers.Add(new LogRequestHandler(server));
@@ -34,9 +35,9 @@ namespace CityWebServer.RequestHandlers
 
             public override IResponseFormatter Handle(HttpListenerRequest request)
             {
-                String body = String.Format("<h1>Server Log</h1><pre>{0}</pre>", String.Join("", _server.LogLines.ToArray()));
+                String body = String.Format("<pre>{0}</pre>", String.Join("", _server.LogLines.ToArray()));
                 var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Log", _server.Plugins, body);
-                var template = TemplateHelper.PopulateTemplate("index", tokens);
+                var template = TemplateHelper.PopulateTemplate("log", _server.WebRoot, tokens);
 
                 return new HtmlResponseFormatter(template);
             }

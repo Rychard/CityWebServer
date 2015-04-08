@@ -3,40 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CityWebServer.Extensibility;
-using ColossalFramework.Plugins;
 
 namespace CityWebServer.Helpers
 {
     public static class TemplateHelper
     {
         /// <summary>
-        /// Gets the full path of the directory that contains this assembly.
-        /// </summary>
-        public static String GetModPath()
-        {
-            var modPaths = PluginManager.instance.GetPluginsInfo().Select(obj => obj.modPath);
-
-            foreach (var path in modPaths)
-            {
-                var indexPath = Path.Combine(path, "index.html");
-                if (File.Exists(indexPath))
-                {
-                    return indexPath;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Gets the full content of a template.
         /// </summary>
-        public static String GetTemplate(String template)
+        public static String GetTemplate(String template, String tmplPath)
         {
             // Templates seem like something we shouldn't handle internally.
             // Perhaps we should force request handlers to implement their own templating if they so desire, and maintain a more "API" approach within the core.
-            String modPath = GetModPath();
-            String templatePath = Path.Combine(modPath, "wwwroot");
-            String specifiedTemplatePath = String.Format("{0}{1}{2}.html", templatePath, Path.DirectorySeparatorChar, template);
+            String specifiedTemplatePath = String.Format("{0}{1}{2}.html", tmplPath, Path.DirectorySeparatorChar, template);
 
             if (File.Exists(specifiedTemplatePath))
             {
@@ -57,11 +36,11 @@ namespace CityWebServer.Helpers
         /// <remarks>
         /// The value of <paramref name="template"/> should not include the file extension.
         /// </remarks>
-        public static String PopulateTemplate(String template, Dictionary<String, String> tokenReplacements)
+        public static String PopulateTemplate(String template, String tmplPath, Dictionary<String, String> tokenReplacements)
         {
             try
             {
-                String templateContents = GetTemplate(template);
+                String templateContents = GetTemplate(template, tmplPath);
                 foreach (var tokenReplacement in tokenReplacements)
                 {
                     templateContents = templateContents.Replace(tokenReplacement.Key, tokenReplacement.Value);
@@ -80,17 +59,15 @@ namespace CityWebServer.Helpers
         /// </summary>
         public static Dictionary<String, String> GetTokenReplacements(String cityName, String title, IPluginInfo[] plugins, String body)
         {
-            var handlerLinks = plugins.Select(obj => String.Format("<li><a href='{0}/'>{1}</a></li>", obj.PluginID, obj.PluginName)).ToArray();
+            var handlerLinks = plugins.Select(obj => obj.TopMenu ? String.Format("<li><a href='/{0}/'>{1}</a></li>", obj.PluginID, obj.PluginName) : "").ToArray();
             String nav = String.Join(Environment.NewLine, handlerLinks);
 
             return new Dictionary<String, String>
             {
                 { "#PAGETITLE#", title },
                 { "#NAV#", nav},
-                { "#CSS#", ""}, // Moved directly into the template.
                 { "#PAGEBODY#", body},
                 { "#CITYNAME#", cityName},
-                { "#JS#", ""}, // Moved directly into the template.
             };
         }
     }

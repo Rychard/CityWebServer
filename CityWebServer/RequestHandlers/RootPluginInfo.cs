@@ -16,10 +16,11 @@ namespace CityWebServer.RequestHandlers
         public RootPluginInfo(IWebServer server)
         {
             _ID = "root";
-            _name = "Index Page Listing";
+            _name = "Index Page";
             _author = "Rychard";
             _isEnabled = true;
-            _wwwroot = null;
+            _wwwroot = server.WebRoot;
+            _topMenu = false;
 
             _handlers = new List<IRequestHandler>();
             _handlers.Add(new RootRequestHandler(server));
@@ -42,9 +43,9 @@ namespace CityWebServer.RequestHandlers
                     }
                 }
 
-                String body = String.Format("<h1>Cities: Skylines - Integrated Web Server</h1><ul>{0}</ul>", String.Join("", links.ToArray()));
+                String body = String.Format("<ul>{0}</ul>", String.Join("", links.ToArray()));
                 var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Home", _server.Plugins, body);
-                var template = TemplateHelper.PopulateTemplate("index", tokens);
+                var template = TemplateHelper.PopulateTemplate("index", _server.WebRoot, tokens);
 
                 return new HtmlResponseFormatter(template);
             }
