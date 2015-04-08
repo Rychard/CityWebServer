@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using ApacheMimeTypes;
 using CityWebServer.Extensibility;
 using CityWebServer.Extensibility.Responses;
 using CityWebServer.Helpers;
+using CityWebServer.RequestHandlers;
 using ColossalFramework;
 using ColossalFramework.Plugins;
 using ICities;
@@ -25,29 +25,10 @@ namespace CityWebServer
         private static string _endpoint;
 
         private WebServer _server;
-        private List<IRequestHandler> _requestHandlers;
+        private Dictionary<string, CityWebPluginInfo> _plugins;
         private String _cityName = "CityName";
-
-        // Not required, but prevents a number of spurious entries from making it to the log file.
-        private static readonly List<String> IgnoredAssemblies = new List<String>
-        {
-            "Anonymously Hosted DynamicMethods Assembly",
-            "Assembly-CSharp",
-            "Assembly-CSharp-firstpass",
-            "Assembly-UnityScript-firstpass",
-            "Boo.Lang",
-            "ColossalManaged",
-            "ICSharpCode.SharpZipLib",
-            "ICities",
-            "Mono.Security",
-            "mscorlib",
-            "System",
-            "System.Configuration",
-            "System.Core",
-            "System.Xml",
-            "UnityEngine",
-            "UnityEngine.UI",
-        };
+        private string _wwwroot = null;
+        private bool _secondPass = false;
 
         /// <summary>
         /// Gets the root endpoint for which the server is configured to service HTTP requests.
@@ -56,33 +37,14 @@ namespace CityWebServer
         {
             get { return _endpoint; }
         }
-
-        /// <summary>
-        /// Gets the full path to the directory where static pages are served from.
-        /// </summary>
-        public static String GetWebRoot()
+        
+        public List<String> LogLines
         {
-            var modPaths = PluginManager.instance.GetPluginsInfo().Select(obj => obj.modPath);
-            foreach (var path in modPaths)
-            {
-                var testPath = Path.Combine(path, "wwwroot");
-
-                if (Directory.Exists(testPath))
-                {
-                    return testPath;
-                }
-            }
-            return null;
+            get { return _logLines; }
         }
 
-        /// <summary>
-        /// Gets an array containing all currently registered request handlers.
-        /// </summary>
-        public IRequestHandler[] RequestHandlers
-        {
-            get { return _requestHandlers.ToArray(); }
-        }
-
+        public String CityName { get { return _cityName; } }
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="IntegratedWebServer"/> class.
         /// </summary>
@@ -91,9 +53,6 @@ namespace CityWebServer
             // For the entire lifetime of this instance, we'll preseve log messages.
             // After a certain point, it might be worth truncating them, but we'll cross that bridge when we get to it.
             _logLines = new List<String>();
-
-            // We need a place to store all the request handlers that have been registered.
-            _requestHandlers = new List<IRequestHandler>();
         }
 
         #region Create
@@ -149,18 +108,8 @@ namespace CityWebServer
             WebServer ws = new WebServer(HandleRequest, bindings.ToArray());
             _server = ws;
             _server.Run();
+            
             LogMessage("Server Initialized.");
-
-            _requestHandlers = new List<IRequestHandler>();
-
-            try
-            {
-                RegisterHandlers();
-            }
-            catch (Exception ex)
-            {
-                UnityEngine.Debug.LogException(ex);
-            }
         }
 
         #endregion Create
@@ -175,7 +124,7 @@ namespace CityWebServer
             ReleaseServer();
 
             // TODO: Unregister from events (i.e. ILogAppender.LogMessage)
-            _requestHandlers.Clear();
+            _plugins.Clear();
 
             Configuration.SaveSettings();
 
@@ -197,6 +146,43 @@ namespace CityWebServer
         #endregion Release
 
         /// <summary>;
+        /// Performs init tasks on first request.
+        /// </summary>
+        /// <remarks>
+        /// Certain plugin init processes must take place after all plugins have loaded. This defers these tasks
+        /// until the first request arrives at the server, which should be after the plugin stack is done.
+        /// </remarks>
+        private void SecondPassInit()
+        {
+            LogMessage("Second pass initialization...");
+            try
+            {
+                var simulationManager = Singleton<SimulationManager>.instance;
+                _cityName = simulationManager.m_metaData.m_CityName;
+            }
+            catch (Exception ex)
+            {
+                LogMessage(String.Format("failed to get city name: {0}", ex));
+                return;
+            }
+            LogMessage(String.Format("set city name: {0}", _cityName));
+            
+            try
+            {
+                RegisterPlugins();
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogException(ex);
+                LogMessage(String.Format("failed to register plugins: {0}", ex));
+                return;
+            }
+
+            _secondPass = true;
+            LogMessage("Second pass complete.");
+        }
+
+        /// <summary>;
         /// Handles the specified request.
         /// </summary>
         /// <remarks>
@@ -206,37 +192,38 @@ namespace CityWebServer
         private void HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             LogMessage(String.Format("{0} {1}", request.HttpMethod, request.RawUrl));
-
-            var simulationManager = Singleton<SimulationManager>.instance;
-            _cityName = simulationManager.m_metaData.m_CityName;
-
-            // There are two reserved endpoints: "/" and "/Log".
-            // These take precedence over all other request handlers.
-            if (ServiceRoot(request, response))
+            if (!_secondPass)
             {
-                return;
-            }
-
-            if (ServiceLog(request, response))
-            {
-                return;
+                SecondPassInit();
             }
 
             // Get the request handler associated with the current request.
-            var handler = _requestHandlers.FirstOrDefault(obj => obj.ShouldHandle(request));
-            if (handler != null)
+            string url = request.Url.AbsolutePath;
+            string slug = null;
+            String wwwroot = _wwwroot;
+            bool handled = false;
+            if (url.IsNullOrWhiteSpace() || url.Equals("/"))
             {
+                slug = "root";
+            }
+            else if (url.StartsWith("/"))
+            {
+                slug = url.Split('/')[1];
+            }
+
+            if (slug != null && _plugins.ContainsKey(slug))
+            {
+                CityWebPluginInfo cwpi;
+                _plugins.TryGetValue(slug, out cwpi);
+                wwwroot = cwpi.WebRoot;
                 try
                 {
-                    IResponseFormatter responseFormatterWriter = handler.Handle(request);
-                    responseFormatterWriter.WriteContent(response);
-
-                    return;
+                    handled = cwpi.HandleRequest(request, response);
                 }
                 catch (Exception ex)
                 {
                     String errorBody = String.Format("<h1>An error has occurred!</h1><pre>{0}</pre>", ex);
-                    var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", _requestHandlers, errorBody);
+                    var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", this.Plugins, errorBody);
                     var template = TemplateHelper.PopulateTemplate("index", tokens);
 
                     IResponseFormatter errorResponseFormatter = new HtmlResponseFormatter(template);
@@ -246,221 +233,165 @@ namespace CityWebServer
                 }
             }
 
-            var wwwroot = GetWebRoot();
+            if (handled) return; // something handled it, great
 
             // At this point, we can guarantee that we don't need any game data, so we can safely start a new thread to perform the remaining tasks.
-            ServiceFileRequest(wwwroot, request, response);
-        }
+            if (ServiceFileRequest(wwwroot, request, response)) return; // check for static files
 
-        private static void ServiceFileRequest(String wwwroot, HttpListenerRequest request, HttpListenerResponse response)
-        {
+            String body = String.Format("No resource is available at the specified filepath: {0}", url);
+            IResponseFormatter notFoundResponseFormatter = new PlainTextResponseFormatter(body, HttpStatusCode.NotFound);
+            notFoundResponseFormatter.WriteContent(response);
+            return;
+        }
+        
+        private static bool ServiceFileRequest(string wwwroot, HttpListenerRequest request, HttpListenerResponse response) {
+            if (null == wwwroot || wwwroot.IsNullOrWhiteSpace()) return false;
+
             var relativePath = request.Url.AbsolutePath.Substring(1);
             relativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
             var absolutePath = Path.Combine(wwwroot, relativePath);
 
-            if (File.Exists(absolutePath))
-            {
-                var extension = Path.GetExtension(absolutePath);
-                response.ContentType = Apache.GetMime(extension);
-                response.StatusCode = 200; // HTTP 200 - SUCCESS
+            if (!File.Exists(absolutePath)) return false;
+            
+            var extension = Path.GetExtension(absolutePath);
+            response.ContentType = Apache.GetMime(extension);
+            response.StatusCode = 200; // HTTP 200 - SUCCESS
 
-                // Open file, read bytes into buffer and write them to the output stream.
-                using (FileStream fileReader = File.OpenRead(absolutePath))
+            // Open file, read bytes into buffer and write them to the output stream.
+            using (FileStream fileReader = File.OpenRead(absolutePath))
+            {
+                byte[] buffer = new byte[4096];
+                int read;
+                while ((read = fileReader.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    byte[] buffer = new byte[4096];
-                    int read;
-                    while ((read = fileReader.Read(buffer, 0, buffer.Length)) > 0)
-                    {
-                        response.OutputStream.Write(buffer, 0, read);
-                    }
+                    response.OutputStream.Write(buffer, 0, read);
                 }
             }
-            else
-            {
-                String body = String.Format("No resource is available at the specified filepath: {0}", absolutePath);
 
-                IResponseFormatter notFoundResponseFormatter = new PlainTextResponseFormatter(body, HttpStatusCode.NotFound);
-                notFoundResponseFormatter.WriteContent(response);
-            }
+            return true;
         }
 
         /// <summary>
-        /// Searches all the assemblies in the current AppDomain for class definitions that implement the <see cref="IRequestHandler"/> interface.  Those classes are instantiated and registered as request handlers.
+        /// Searches all the plugins in the PluginManager for ones that implement <see cref="ICityWebPlugin"/>.
         /// </summary>
-        private void RegisterHandlers()
+        private void RegisterPlugins()
         {
-            IEnumerable<Type> handlers = FindHandlersInLoadedAssemblies();
-            RegisterHandlers(handlers);
-        }
-
-        private void RegisterHandlers(IEnumerable<Type> handlers)
-        {
-            if (handlers == null) { return; }
-
-            if (_requestHandlers == null)
+            if (null != _plugins)
             {
-                _requestHandlers = new List<IRequestHandler>();
+                _plugins.Clear();
+                _plugins = null;
             }
 
-            foreach (var handler in handlers)
+            List<PluginManager.PluginInfo> plugins = new List<PluginManager.PluginInfo>(PluginManager.instance.GetPluginsInfo());
+
+            for (int i = 0; i < plugins.Count; i++)
             {
-                // Only register handlers that we don't already have an instance of.
-                if (_requestHandlers.Any(h => h.GetType() == handler))
-                {
-                    continue;
-                }
+                PluginManager.PluginInfo pi = plugins.ElementAt(i);
+                if (!pi.isEnabled || pi.isBuiltin) continue;
 
-                IRequestHandler handlerInstance = null;
-                Boolean exists = false;
-
+                // get this plugin instance as a standard IUserMod
+                IUserMod[] minsts = null;
                 try
                 {
-                    if (typeof(RequestHandlerBase).IsAssignableFrom(handler))
-                    {
-                        handlerInstance = (RequestHandlerBase)Activator.CreateInstance(handler, this);
-                    }
-                    else
-                    {
-                        handlerInstance = (IRequestHandler)Activator.CreateInstance(handler);
-                    }
-
-                    if (handlerInstance == null)
-                    {
-                        LogMessage(String.Format("Request Handler ({0}) could not be instantiated!", handler.Name));
-                        continue;
-                    }
-
-                    // Duplicates handlers seem to pass the check above, so now we filter them based on their identifier values, which should work.
-                    exists = _requestHandlers.Any(obj => obj.HandlerID == handlerInstance.HandlerID);
+                    minsts = pi.GetInstances<IUserMod>();
                 }
                 catch (Exception ex)
                 {
-                    LogMessage(ex.ToString());
+                    LogMessage(String.Format("IUserMod cast error: {0}", ex));
+                    continue;
                 }
-
-                if (exists)
+                if (null == minsts || minsts.Length < 1) continue;
+                if (minsts[0].Name.Equals("Integrated Web Server"))
                 {
-                    // TODO: Allow duplicate registrations to occur; previous registration is removed and replaced with a new one?
-                    LogMessage(String.Format("Supressing duplicate handler registration for '{0}'", handler.Name));
+                    // hey it's me! get our web root
+                    string testPath = Path.Combine(pi.modPath, "wwwroot");
+                    if (Directory.Exists(testPath))
+                    {
+                        LogMessage(String.Format("Setting server wwwroot location: {0}", testPath));
+                        _wwwroot = testPath;
+                    }
+                    break;
+                }
+            }
+
+            _plugins = new Dictionary<string, CityWebPluginInfo>();
+            DefaultPlugins(); // register the default fake plugins
+
+            LogMessage("Looking for CityWeb plugins...");
+            for (int i = 0; i < plugins.Count; i++)
+            {
+                PluginManager.PluginInfo pi = plugins.ElementAt(i);
+                if (!pi.isEnabled || pi.isBuiltin) continue;
+                             
+                // get this plugin instance as a ICityWebPlugin
+                ICityWebPlugin[] insts = null;
+                try
+                {
+                    insts = pi.GetInstances<ICityWebPlugin>();
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(String.Format("ICityWebPlugin cast error: {0}", ex));
+                    continue;
+                }
+                if (null == insts || insts.Length < 1) continue;
+                LogMessage(String.Format("Loading plugin \"{0}\"", insts[0].PluginName));
+
+                CityWebPluginInfo cwpi = null;
+                try
+                {
+                    cwpi = new CityWebPluginInfo(insts[0], pi, this);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage(String.Format("Failed to load plugin: \"{0}\"", ex));
+                    continue;
+                }
+                if (!cwpi.IsEnabled) continue;
+
+                string slug = cwpi.ID;
+                if (slug == null || slug.IsNullOrWhiteSpace())
+                {
+                    LogMessage(String.Format("Invalid plugin \"{0}\" by \"{1}\"", cwpi.Name, cwpi.Author));
+                }
+                else if (_plugins.ContainsKey(slug))
+                {
+                    LogMessage(String.Format("Conflicting plugin; ID already exists! {0}:\"{1}\" by \"{2}\"", slug, cwpi.Name, cwpi.Author));
                 }
                 else
                 {
-                    _requestHandlers.Add(handlerInstance);
-                    if (handlerInstance is ILogAppender)
+                    LogMessage(String.Format("Loaded plugin {0}:\"{1}\" by \"{2}\"", slug, cwpi.Name, cwpi.Author));
+                    _plugins.Add(slug, cwpi);
+                    if (cwpi.Handlers != null)
                     {
-                        var logAppender = (handlerInstance as ILogAppender);
-                        logAppender.LogMessage += RequestHandlerLogAppender_OnLogMessage;
+                        for (int j = 0; j < cwpi.Handlers.Count; j++)
+                        {
+                            if (cwpi.Handlers.ElementAt(j) is ILogAppender)
+                            {
+                                ILogAppender la = (cwpi.Handlers.ElementAt(j) as ILogAppender);
+                                la.LogMessage += RequestHandlerLogAppender_OnLogMessage;
+                            }
+                        }
                     }
-
-                    LogMessage(String.Format("Added Request Handler: {0}", handler.FullName));
                 }
             }
         }
 
+        public IPluginInfo[] Plugins { get { return _plugins.Values.ToArray(); } }
+       
         private void RequestHandlerLogAppender_OnLogMessage(object sender, LogAppenderEventArgs logAppenderEventArgs)
         {
             var senderTypeName = sender.GetType().Name;
             LogMessage(logAppenderEventArgs.LogLine, senderTypeName, false);
         }
 
-        /// <summary>
-        /// Searches all the assemblies in the current AppDomain, and returns a collection of those that implement the <see cref="IRequestHandler"/> interface.
-        /// </summary>
-        private static IEnumerable<Type> FindHandlersInLoadedAssemblies()
+        private void DefaultPlugins()
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-            foreach (var assembly in assemblies)
-            {
-                var handlers = FetchHandlers(assembly);
-                foreach (var handler in handlers)
-                {
-                    yield return handler;
-                }
-            }
+            LogMessage("adding default plugins");
+            _plugins.Add("root", new RootPluginInfo(this));
+            _plugins.Add("log", new LogPluginInfo(this));
+            _plugins.Add("api", new APIPluginInfo(this));
         }
-
-        private static IEnumerable<Type> FetchHandlers(Assembly assembly)
-        {
-            var assemblyName = assembly.GetName().Name;
-
-            // Skip any assemblies that we don't anticipate finding anything in.
-            if (IgnoredAssemblies.Contains(assemblyName)) { yield break; }
-
-            Type[] types = new Type[0];
-            try
-            {
-                types = assembly.GetTypes();
-            }
-            catch { }
-
-            foreach (var type in types)
-            {
-                Boolean isValid = false;
-                try
-                {
-                    isValid = typeof(IRequestHandler).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract;
-                }
-                catch { }
-
-                if (isValid)
-                {
-                    yield return type;
-                }
-            }
-        }
-
-        #region Reserved Endpoint Handlers
-
-        /// <summary>
-        /// Services requests to <c>~/</c>
-        /// </summary>
-        private Boolean ServiceRoot(HttpListenerRequest request, HttpListenerResponse response)
-        {
-            if (request.Url.AbsolutePath.ToLower() == "/")
-            {
-                List<String> links = new List<String>();
-                foreach (var requestHandler in this._requestHandlers.OrderBy(obj => obj.Priority))
-                {
-                    links.Add(String.Format("<li><a href='{1}'>{0}</a> by {2} (Priority: {3})</li>", requestHandler.Name, requestHandler.MainPath, requestHandler.Author, requestHandler.Priority));
-                }
-
-                String body = String.Format("<h1>Cities: Skylines - Integrated Web Server</h1><ul>{0}</ul>", String.Join("", links.ToArray()));
-                var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Home", _requestHandlers, body);
-                var template = TemplateHelper.PopulateTemplate("index", tokens);
-
-                IResponseFormatter htmlResponseFormatter = new HtmlResponseFormatter(template);
-                htmlResponseFormatter.WriteContent(response);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Services requests to <c>~/Log</c>
-        /// </summary>
-        private Boolean ServiceLog(HttpListenerRequest request, HttpListenerResponse response)
-        {
-            if (request.Url.AbsolutePath.ToLower() == "/log")
-            {
-                {
-                    String body = String.Format("<h1>Server Log</h1><pre>{0}</pre>", String.Join("", _logLines.ToArray()));
-                    var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Log", _requestHandlers, body);
-                    var template = TemplateHelper.PopulateTemplate("index", tokens);
-
-                    IResponseFormatter htmlResponseFormatter = new HtmlResponseFormatter(template);
-                    htmlResponseFormatter.WriteContent(response);
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        #endregion Reserved Endpoint Handlers
 
         #region Logging
 

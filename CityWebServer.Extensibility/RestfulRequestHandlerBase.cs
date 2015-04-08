@@ -5,24 +5,16 @@ namespace CityWebServer.Extensibility
 {
     public abstract class RestfulRequestHandlerBase : RequestHandlerBase
     {
-        public RestfulRequestHandlerBase(IWebServer server, Guid handlerID, String name, String author, int priority, String mainPath)
-            : base(server, handlerID, name, author, priority, mainPath)
+        public RestfulRequestHandlerBase(IWebServer server, String mainPath)
+            : base(server, mainPath)
         {
         }
 
-        public override Guid HandlerID { get { return _handlerID; } }
-
-        public override int Priority { get { return _priority; } }
-
-        public override string Name { get { return _name; } }
-
-        public override string Author { get { return _author; } }
-
         public override string MainPath { get { return _mainPath; } }
 
-        public override bool ShouldHandle(HttpListenerRequest request)
+        public override bool ShouldHandle(HttpListenerRequest request, String slug)
         {
-            return (request.Url.AbsolutePath.StartsWith(_mainPath, StringComparison.OrdinalIgnoreCase));
+            return (request.Url.AbsolutePath.StartsWith(String.Format("/{0}{1}", slug, _mainPath), StringComparison.OrdinalIgnoreCase));
         }
 
         public override IResponseFormatter Handle(HttpListenerRequest request)
