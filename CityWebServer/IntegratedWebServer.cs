@@ -205,15 +205,6 @@ namespace CityWebServer
             LogMessage(String.Format("{0} {1}", request.HttpMethod, request.RawUrl));
             if (!_secondPass) SecondPassInit();
             if (!_pluginPass) RegisterPlugins();
-            /*
-            {
-                RegisterPlugins();
-                if (!_pluginPass)
-                {
-                    LogMessage("failed to properly scan plugins; will try again next request");
-                }
-            }
-             * */
 
             // Get the request handler associated with the current request.
             string url = request.Url.AbsolutePath;
@@ -254,7 +245,7 @@ namespace CityWebServer
             if (handled) return; // something handled it, great
 
             // At this point, we can guarantee that we don't need any game data, so we can safely start a new thread to perform the remaining tasks.
-            if (ServiceFileRequest(wwwroot, request, response)) return; // check for static files
+            if (ServiceFileRequest(wwwroot, request, response, slug)) return; // check for static files
 
             String body = String.Format("No resource is available at the specified filepath: {0}", url);
             IResponseFormatter notFoundResponseFormatter = new PlainTextResponseFormatter(body, HttpStatusCode.NotFound);
@@ -262,13 +253,20 @@ namespace CityWebServer
             return;
         }
         
-        private static bool ServiceFileRequest(string wwwroot, HttpListenerRequest request, HttpListenerResponse response) {
+        private static bool ServiceFileRequest(string wwwroot, HttpListenerRequest request, HttpListenerResponse response, string slug) {
             if (null == wwwroot || wwwroot.IsNullOrWhiteSpace()) return false;
 
-            var relativePath = request.Url.AbsolutePath.Substring(1);
+            var relativePath = request.Url.AbsolutePath;
+            if (!slug.Equals("root"))
+            {
+                relativePath = relativePath.Replace(String.Format("/{0}/", slug), "");
+            }
+            else
+            {
+                relativePath = relativePath.Substring(1);
+            }
             relativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
             var absolutePath = Path.Combine(wwwroot, relativePath);
-
             if (!File.Exists(absolutePath)) return false;
             
             var extension = Path.GetExtension(absolutePath);
