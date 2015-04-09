@@ -217,7 +217,15 @@ namespace CityWebServer
             }
             else if (url.StartsWith("/"))
             {
-                slug = url.Split('/')[1];
+                string[] urlparts = url.Split('/');
+                if (urlparts.Length < 3)
+                {
+                    slug = "root";
+                }
+                else
+                {
+                    slug = urlparts[1];
+                }
             }
 
             if (slug != null && _plugins.ContainsKey(slug))
