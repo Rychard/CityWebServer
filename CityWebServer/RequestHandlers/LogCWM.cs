@@ -11,9 +11,9 @@ using CityWebServer.Extensibility.Responses;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class LogPluginInfo : CityWebPluginInfo
+    public class LogCWM : CityWebMod
     {
-        public LogPluginInfo(IWebServer server)
+        public LogCWM(IWebServer server)
         {
             _ID = "log";
             _name = "Server Log";
@@ -36,7 +36,7 @@ namespace CityWebServer.RequestHandlers
             public override IResponseFormatter Handle(HttpListenerRequest request)
             {
                 String body = String.Format("<pre>{0}</pre>", String.Join("", _server.LogLines.ToArray()));
-                var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Log", _server.Plugins, body);
+                var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Log", _server.Mods, body);
                 var template = TemplateHelper.PopulateTemplate("log", _server.WebRoot, tokens);
 
                 return new HtmlResponseFormatter(template);

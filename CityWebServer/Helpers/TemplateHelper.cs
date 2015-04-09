@@ -57,9 +57,9 @@ namespace CityWebServer.Helpers
         /// <summary>
         /// Gets a dictionary that contains standard replacement tokens using the specified values.
         /// </summary>
-        public static Dictionary<String, String> GetTokenReplacements(String cityName, String title, IPluginInfo[] plugins, String body)
+        public static Dictionary<String, String> GetTokenReplacements(String cityName, String title, ICityWebMod[] mods, String body)
         {
-            var handlerLinks = plugins.Select(obj => obj.TopMenu ? String.Format("<li><a href='/{0}/'>{1}</a></li>", obj.PluginID, obj.PluginName) : "").ToArray();
+            var handlerLinks = mods.Select(obj => obj.TopMenu ? String.Format("<li><a href='/{0}/'>{1}</a></li>", obj.ModID, obj.ModName) : "").ToArray();
             String nav = String.Join(Environment.NewLine, handlerLinks);
 
             return new Dictionary<String, String>

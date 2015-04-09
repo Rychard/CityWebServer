@@ -6,9 +6,9 @@ namespace CityWebServer.Extensibility
     public interface IWebServer
     {
         /// <summary>
-        /// Gets an array containing all currently registered plugins.
+        /// Gets an array containing all currently registered CityWebMods.
         /// </summary>
-        IPluginInfo[] Plugins { get; }
+        ICityWebMod[] Mods { get; }
 
         /// <summary>
         /// Gets the name of the current city.

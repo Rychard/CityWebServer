@@ -8,6 +8,8 @@ using ColossalFramework.Plugins;
 
 namespace CityWebServer.Helpers
 {
+    // this is a wrapper class to encapsulate both the PluginManager.PluginInfo and its
+    // associated IUserMod instance, to simplify spinning through these in tandem
     public class UserMod
     {
         private IUserMod _umod = null;
@@ -34,7 +36,7 @@ namespace CityWebServer.Helpers
         }
 
         /// <summary>
-        /// Static factory to collect mods from the PluginManager into a list of ModInfo's
+        /// Static factory to collect plugins from the PluginManager into a list of UserMods
         /// </summary>
         public static List<UserMod> CollectPlugins()
         {

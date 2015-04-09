@@ -25,12 +25,13 @@ namespace CityWebServer
         private static string _endpoint;
 
         private WebServer _server;
-        private Dictionary<string, CityWebPluginInfo> _plugins;
         private String _cityName = "CityName";
         private string _wwwroot = null;
         private bool _secondPass = false;
-        private bool _pluginPass = false;
-        private List<UserMod> _mods = null;
+        private bool _cwmPass = false;
+        
+        private Dictionary<string, CityWebMod> _cwMods; // the list of CityWebMods we've identified and registered
+        private List<UserMod> _usrMods = null; // utility list of all UserMods found in ColossalFramework PluginManager
 
         /// <summary>
         /// Gets the root endpoint for which the server is configured to service HTTP requests.
@@ -122,10 +123,16 @@ namespace CityWebServer
             ReleaseServer();
 
             // TODO: Unregister from events (i.e. ILogAppender.LogMessage)
-            if (null != _plugins)
+            if (null != _cwMods)
             {
-                _plugins.Clear();
-                _plugins = null;
+                _cwMods.Clear();
+                _cwMods = null;
+            }
+            if (null != _usrMods) // TODO: we ought to clean this up much sooner, only needed for init and i don't
+                // like hanging on to these references for very long
+            {
+                _usrMods.Clear();
+                _usrMods = null;
             }
 
             Configuration.SaveSettings();
@@ -179,8 +186,8 @@ namespace CityWebServer
             
             try
             {
-                _mods = UserMod.CollectPlugins();
-                RegisterDefaultPlugins();
+                _usrMods = UserMod.CollectPlugins();
+                RegisterDefaultCWM();
             }
             catch (Exception ex)
             {
@@ -204,7 +211,7 @@ namespace CityWebServer
         {
             LogMessage(String.Format("{0} {1}", request.HttpMethod, request.RawUrl));
             if (!_secondPass) SecondPassInit();
-            if (!_pluginPass) RegisterPlugins();
+            if (!_cwmPass) RegisterCWM();
 
             // Get the request handler associated with the current request.
             string url = request.Url.AbsolutePath;
@@ -228,19 +235,19 @@ namespace CityWebServer
                 }
             }
 
-            if (slug != null && _plugins.ContainsKey(slug))
+            if (slug != null && _cwMods.ContainsKey(slug))
             {
-                CityWebPluginInfo cwpi;
-                _plugins.TryGetValue(slug, out cwpi);
-                wwwroot = cwpi.WebRoot;
+                CityWebMod cwm;
+                _cwMods.TryGetValue(slug, out cwm);
+                wwwroot = cwm.WebRoot;
                 try
                 {
-                    handled = cwpi.HandleRequest(request, response);
+                    handled = cwm.HandleRequest(request, response);
                 }
                 catch (Exception ex)
                 {
                     String errorBody = String.Format("<h1>An error has occurred!</h1><pre>{0}</pre>", ex);
-                    var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", this.Plugins, errorBody);
+                    var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", this.Mods, errorBody);
                     var template = TemplateHelper.PopulateTemplate("index", _wwwroot, tokens);
 
                     IResponseFormatter errorResponseFormatter = new HtmlResponseFormatter(template);
@@ -296,21 +303,22 @@ namespace CityWebServer
         }
 
         /// <summary>
-        /// Searches all the plugins in the PluginManager for ones that implement <see cref="ICityWebPlugin"/>.
+        /// Searches all the plugins in the PluginManager for ones that implement <see cref="ICityWebMod"/>.
         /// </summary>
-        private void RegisterPlugins()
+        private void RegisterCWM()
         {
-            LogMessage("Looking for CityWeb plugins...");
-            foreach (UserMod um in _mods) {
+            LogMessage("Looking for CityWebMods...");
+            foreach (UserMod um in _usrMods) {
                 if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin) continue;
                 if (null == um.Mod) continue;
 
                 LogMessage(String.Format("scanning {0} &lt;{1}&gt;...", um.PluginInfo.name, um.Mod.GetType()));
-                CityWebPlugin cwp = CityWebPlugin.CreateByReflection(um, this);
-                if (null == cwp) continue;
+                CityWebMod cwm = CityWebMod.CreateByReflection(um, this);
+                if (null == cwm) continue;
 
-                LogMessage(String.Format("Loading plugin \"{0}\"", cwp.PluginName));
+                // LogMessage(String.Format("Loading mod \"{0}\"", cwm.ModName));
 
+                /*
                 CityWebPluginInfo cwpi = null;
                 try
                 {
@@ -321,27 +329,28 @@ namespace CityWebServer
                     LogMessage(String.Format("Failed to load plugin: \"{0}\"", ex));
                     continue;
                 }
+                 */
 
-                string slug = cwpi.ID;
+                string slug = cwm.ModID;
                 if (slug == null || slug.IsNullOrWhiteSpace())
                 {
-                    LogMessage(String.Format("Invalid plugin \"{0}\" by \"{1}\"", cwpi.Name, cwpi.Author));
+                    LogMessage(String.Format("Invalid CityWebMod \"{0}\" by \"{1}\"", cwm.ModName, cwm.ModAuthor));
                 }
-                else if (_plugins.ContainsKey(slug))
+                else if (_cwMods.ContainsKey(slug))
                 {
-                    LogMessage(String.Format("Conflicting plugin; ID already exists! {0}:\"{1}\" by \"{2}\"", slug, cwpi.Name, cwpi.Author));
+                    LogMessage(String.Format("Conflicting CityWebMod; ID already exists! {0}:\"{1}\" by \"{2}\"", slug, cwm.ModName, cwm.ModAuthor));
                 }
                 else
                 {
-                    LogMessage(String.Format("Loaded plugin {0}:\"{1}\" by \"{2}\"", slug, cwpi.Name, cwpi.Author));
-                    _plugins.Add(slug, cwpi);
-                    if (cwpi.Handlers != null)
-                    {
-                        for (int j = 0; j < cwpi.Handlers.Count; j++)
+                    LogMessage(String.Format("Loaded CityWebMod {0}:\"{1}\" by \"{2}\"", slug, cwm.ModName, cwm.ModAuthor));
+                    _cwMods.Add(slug, cwm);
+                    List<IRequestHandler> hList = cwm.GetHandlers(this);
+                    if (hList != null) {
+                        foreach (IRequestHandler h in hList)
                         {
-                            if (cwpi.Handlers.ElementAt(j) is ILogAppender)
+                            if (h is ILogAppender)
                             {
-                                ILogAppender la = (cwpi.Handlers.ElementAt(j) as ILogAppender);
+                                ILogAppender la = (h as ILogAppender);
                                 la.LogMessage += RequestHandlerLogAppender_OnLogMessage;
                             }
                         }
@@ -349,10 +358,10 @@ namespace CityWebServer
                 }
             }
 
-            _pluginPass = true;
+            _cwmPass = true;
         }
 
-        public IPluginInfo[] Plugins { get { return _plugins.Values.ToArray(); } }
+        public ICityWebMod[] Mods { get { return _cwMods.Values.ToArray(); } }
        
         private void RequestHandlerLogAppender_OnLogMessage(object sender, LogAppenderEventArgs logAppenderEventArgs)
         {
@@ -361,19 +370,18 @@ namespace CityWebServer
         }
         
         /// <summary>
-        /// Does some initial setup dependent on scanning plugins and also default plugin registration.
+        /// Does some initial setup dependent on scanning plugins and also default/core CWM registration.
         /// </summary>
-        private void RegisterDefaultPlugins()
+        private void RegisterDefaultCWM()
         {
-            if (null != _plugins)
+            if (null != _cwMods)
             {
-                _plugins.Clear();
-                _plugins = null;
+                _cwMods.Clear();
+                _cwMods = null;
             }
-            foreach (UserMod um in _mods) {
+            foreach (UserMod um in _usrMods) {
                 if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin) continue;
                 if (null == um.Mod) continue;
-                // ICityWebPlugin foo = minsts[0] as ICityWebPlugin;
                 if (um.Mod.Name.Equals("Integrated Web Server"))
                 {
                     // hey it's me! get our web root
@@ -387,11 +395,11 @@ namespace CityWebServer
                 }
             }
 
-            LogMessage("adding default plugins");
-            _plugins = new Dictionary<string, CityWebPluginInfo>();
-            _plugins.Add("root", new RootPluginInfo(this));
-            _plugins.Add("log", new LogPluginInfo(this));
-            _plugins.Add("api", new APIPluginInfo(this));
+            LogMessage("adding default CityWebMods");
+            _cwMods = new Dictionary<string, CityWebMod>();
+            _cwMods.Add("root", new RootCWM(this));
+            _cwMods.Add("log", new LogCWM(this));
+            _cwMods.Add("api", new APICWM(this));
         }
 
         #region Logging

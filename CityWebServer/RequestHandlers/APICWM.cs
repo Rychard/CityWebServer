@@ -11,9 +11,9 @@ using CityWebServer.Extensibility.Responses;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class APIPluginInfo : CityWebPluginInfo
+    public class APICWM : CityWebMod
     {
-        public APIPluginInfo(IWebServer server)
+        public APICWM(IWebServer server)
         {
             _ID = "api";
             _name = "JSON API";

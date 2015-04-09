@@ -11,9 +11,9 @@ using CityWebServer.Extensibility.Responses;
 
 namespace CityWebServer.RequestHandlers
 {
-    public class RootPluginInfo : CityWebPluginInfo
+    public class RootCWM : CityWebMod
     {
-        public RootPluginInfo(IWebServer server)
+        public RootCWM(IWebServer server)
         {
             _ID = "root";
             _name = "Index Page";
@@ -36,15 +36,15 @@ namespace CityWebServer.RequestHandlers
             public override IResponseFormatter Handle(HttpListenerRequest request)
             {
                 List<String> links = new List<String>();
-                foreach (var plugin in _server.Plugins.OrderBy(obj => obj.PluginID))
+                foreach (var cwm in _server.Mods.OrderBy(obj => obj.ModID))
                 {
-                    if (!plugin.PluginID.Equals("root")) {
-                        links.Add(String.Format("<li><a href='{1}/'>{0}</a> by {2}</li>", plugin.PluginName, plugin.PluginID, plugin.PluginAuthor));
+                    if (!cwm.ModID.Equals("root")) {
+                        links.Add(String.Format("<li><a href='{1}/'>{0}</a> by {2}</li>", cwm.ModName, cwm.ModID, cwm.ModAuthor));
                     }
                 }
 
                 String body = String.Format("<ul>{0}</ul>", String.Join("", links.ToArray()));
-                var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Home", _server.Plugins, body);
+                var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Home", _server.Mods, body);
                 var template = TemplateHelper.PopulateTemplate("index", _server.WebRoot, tokens);
 
                 return new HtmlResponseFormatter(template);

@@ -5,24 +5,24 @@ using CityWebServer.Extensibility;
 
 namespace SampleWebServerExtension
 {
-    public class UserModInfo : IUserMod, ICityWebPlugin
+    public class UserModInfo : IUserMod, ICityWebMod
     {
         public String Name
         {
             get { return "Sample Web Server Extension"; }
         }
 
-        public String PluginName
+        public String ModName
         {
             get { return "Sample Extension"; }
         }
 
-        public String PluginAuthor
+        public String ModAuthor
         {
             get { return "Rychard"; }
         }
 
-        public String PluginID
+        public String ModID
         {
             get { return "sample"; }
         }

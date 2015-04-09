@@ -41,8 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IPluginInfo.cs" />
-    <Compile Include="ICityWebPlugin.cs" />
+    <Compile Include="ICityWebMod.cs" />
     <Compile Include="IWebServer.cs" />
     <Compile Include="RequestHandlerBase.cs" />
     <Compile Include="ResponseFormatters\HtmlResponseFormatter.cs" />
