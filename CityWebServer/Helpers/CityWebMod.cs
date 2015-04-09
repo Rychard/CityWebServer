@@ -34,52 +34,7 @@ namespace CityWebServer.Helpers
         
         protected CityWebMod()
         {
-        }
-        
-        /*
-        public CityWebMod(UserMod um, IWebServer server)
-        {
-            _ID = p.PluginID.ToLower().Replace(" ", "_");
-            _name = p.PluginName;
-            _author = p.PluginAuthor;
-            _topMenu = p.TopMenu;
-            _isEnabled = pi.isEnabled;
-            if (_isEnabled)
-            {
-                string testPath = Path.Combine(pi.modPath, "wwwroot");
-                if (Directory.Exists(testPath))
-                {
-                    _wwwroot = testPath;
-                }
-                List<IRequestHandler> h = p.GetHandlers(server);
-                if (null != h)
-                {
-                    _handlers = h;
-                }
-                else
-                {
-                    _handlers = new List<IRequestHandler>();
-                }
-            }
-        }
-        */
-        /*
-        public CityWebPluginInfo(string name, string author, string ID, IEnumerable<IRequestHandler> h)
-        {
-            _ID = ID;
-            _name = name;
-            _author = author;
-            _isEnabled = true;
-            if (null != h)
-            {
-                _handlers = new List<IRequestHandler>(h);
-            }
-            else
-            {
-                _handlers = new List<IRequestHandler>();
-            }
-        }
-         */
+        }        
 
         public bool HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
@@ -93,7 +48,7 @@ namespace CityWebServer.Helpers
 
         public static CityWebMod CreateByReflection(UserMod um, IWebServer server)
         {
-            // just casting um.Mod to ICityWebPlugin is not reliable; somtimes works, sometimes not
+            // just casting um.Mod to ICityWebMod is not reliable; somtimes works, sometimes not
             // instead we need to reflect on it to identify mods that have implemented ICityWebMod
             Type ut = um.Mod.GetType();
             MethodInfo getHandlers = null;
