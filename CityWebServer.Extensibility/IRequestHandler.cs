@@ -18,11 +18,11 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Returns a value that indicates whether this handler is capable of servicing the given request.
         /// </summary>
-        Boolean ShouldHandle(HttpListenerRequest request, string slug);
+        Boolean ShouldHandle(HttpListenerRequest request, String slug);
 
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot);
+        IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot);
     }
 }

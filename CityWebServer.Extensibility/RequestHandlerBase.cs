@@ -47,7 +47,7 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Returns a value that indicates whether this handler is capable of servicing the given request.
         /// </summary>
-        public virtual Boolean ShouldHandle(HttpListenerRequest request, string slug)
+        public virtual Boolean ShouldHandle(HttpListenerRequest request, String slug)
         {
             return (request.Url.AbsolutePath.Equals(String.Format("/{0}{1}", slug, _mainPath), StringComparison.OrdinalIgnoreCase));
         }
@@ -55,7 +55,7 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        public abstract IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot);
+        public abstract IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot);
 
         /// <summary>
         /// Returns a response in JSON format.

@@ -32,7 +32,7 @@ namespace SampleWebServerExtension
             get { return "Adds a sample page to the integrated web server.  Doesn't do anything without it!"; }
         }
 
-        public bool TopMenu {
+        public Boolean TopMenu {
             get { return true; } 
         }
 

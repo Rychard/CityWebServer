@@ -29,7 +29,7 @@ namespace CityWebServer.Helpers
             catch
             {
             }
-            if (null != insts && insts.Length > 0)
+            if (insts != null && insts.Length > 0)
             {
                 _umod = insts[0];
             }
@@ -42,7 +42,7 @@ namespace CityWebServer.Helpers
         {
             List<UserMod> miList = new List<UserMod>();
             PluginManager pm = Singleton<PluginManager>.instance;
-            if (null == pm) return miList;
+            if (null == pm) { return miList; }
 
             List<PluginManager.PluginInfo> piList = new List<PluginManager.PluginInfo>(pm.GetPluginsInfo());
             foreach (PluginManager.PluginInfo pi in piList)

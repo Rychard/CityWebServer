@@ -17,7 +17,7 @@ namespace CityWebServer.RequestHandlers
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             var transportManager = Singleton<TransportManager>.instance;
 

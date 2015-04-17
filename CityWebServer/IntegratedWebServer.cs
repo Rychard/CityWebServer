@@ -22,15 +22,15 @@ namespace CityWebServer
         private const String WebServerHostKey = "webServerHost{0}";
 
         private static List<String> _logLines;
-        private static string _endpoint;
+        private static String _endpoint;
 
         private WebServer _server;
         private String _cityName = "CityName";
-        private string _wwwroot = null;
-        private bool _secondPass = false;
-        private bool _cwmPass = false;
+        private String _wwwroot = null;
+        private Boolean _secondPass = false;
+        private Boolean _cwmPass = false;
         
-        private Dictionary<string, CityWebMod> _cwMods; // the list of CityWebMods we've identified and registered
+        private Dictionary<String, CityWebMod> _cwMods; // the list of CityWebMods we've identified and registered
         private List<UserMod> _usrMods = null; // utility list of all UserMods found in ColossalFramework PluginManager
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace CityWebServer
             ReleaseServer();
 
             // TODO: Unregister from events (i.e. ILogAppender.LogMessage)
-            if (null != _cwMods)
+            if (_cwMods != null)
             {
                 _cwMods.Clear();
                 _cwMods = null;
@@ -167,7 +167,7 @@ namespace CityWebServer
             try
             {
                 SimulationManager sm = Singleton<SimulationManager>.instance;
-                if (null != sm)
+                if (sm != null)
                 {
                     _cityName = sm.m_metaData.m_CityName;
                 }
@@ -210,21 +210,21 @@ namespace CityWebServer
         private void HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
             LogMessage(String.Format("{0} {1}", request.HttpMethod, request.RawUrl));
-            if (!_secondPass) SecondPassInit();
-            if (!_cwmPass) RegisterCWM();
+            if (!_secondPass) { SecondPassInit(); }
+            if (!_cwmPass) { RegisterCWM(); }
 
             // Get the request handler associated with the current request.
-            string url = request.Url.AbsolutePath;
-            string slug = null;
+            String url = request.Url.AbsolutePath;
+            String slug = null;
             String wwwroot = _wwwroot;
-            bool handled = false;
+            Boolean handled = false;
             if (url.IsNullOrWhiteSpace() || url.Equals("/"))
             {
                 slug = "root";
             }
             else if (url.StartsWith("/"))
             {
-                string[] urlparts = url.Split('/');
+                String[] urlparts = url.Split('/');
                 if (urlparts.Length < 3)
                 {
                     slug = "root";
@@ -257,10 +257,10 @@ namespace CityWebServer
                 }
             }
 
-            if (handled) return; // something handled it, great
+            if (handled) { return; } // something handled it, great
 
             // At this point, we can guarantee that we don't need any game data, so we can safely start a new thread to perform the remaining tasks.
-            if (ServiceFileRequest(wwwroot, request, response, slug)) return; // check for static files
+            if (ServiceFileRequest(wwwroot, request, response, slug)) { return; } // check for static files
 
             String body = String.Format("No resource is available at the specified filepath: {0}", url);
             IResponseFormatter notFoundResponseFormatter = new PlainTextResponseFormatter(body, HttpStatusCode.NotFound);
@@ -268,8 +268,8 @@ namespace CityWebServer
             return;
         }
         
-        private static bool ServiceFileRequest(string wwwroot, HttpListenerRequest request, HttpListenerResponse response, string slug) {
-            if (null == wwwroot || wwwroot.IsNullOrWhiteSpace()) return false;
+        private static Boolean ServiceFileRequest(String wwwroot, HttpListenerRequest request, HttpListenerResponse response, String slug) {
+            if (wwwroot == null || wwwroot.IsNullOrWhiteSpace()) { return false; }
 
             var relativePath = request.Url.AbsolutePath;
             if (!slug.Equals("root"))
@@ -282,7 +282,7 @@ namespace CityWebServer
             }
             relativePath = relativePath.Replace("/", Path.DirectorySeparatorChar.ToString());
             var absolutePath = Path.Combine(wwwroot, relativePath);
-            if (!File.Exists(absolutePath)) return false;
+            if (!File.Exists(absolutePath)) { return false; }
             
             var extension = Path.GetExtension(absolutePath);
             response.ContentType = Apache.GetMime(extension);
@@ -309,14 +309,14 @@ namespace CityWebServer
         {
             LogMessage("Looking for CityWebMods...");
             foreach (UserMod um in _usrMods) {
-                if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin) continue;
-                if (null == um.Mod) continue;
+                if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin) { continue; }
+                if (um.Mod == null) { continue; }
 
                 LogMessage(String.Format("scanning {0} &lt;{1}&gt;...", um.PluginInfo.name, um.Mod.GetType()));
                 CityWebMod cwm = CityWebMod.CreateByReflection(um, this);
-                if (null == cwm) continue;
+                if (cwm == null) { continue; }
 
-                string slug = cwm.ModID;
+                String slug = cwm.ModID;
                 if (slug == null || slug.IsNullOrWhiteSpace())
                 {
                     LogMessage(String.Format("Invalid CityWebMod \"{0}\" by \"{1}\"", cwm.ModName, cwm.ModAuthor));
@@ -330,7 +330,8 @@ namespace CityWebServer
                     LogMessage(String.Format("Loaded CityWebMod {0}:\"{1}\" by \"{2}\"", slug, cwm.ModName, cwm.ModAuthor));
                     _cwMods.Add(slug, cwm);
                     List<IRequestHandler> hList = cwm.GetHandlers(this);
-                    if (hList != null) {
+                    if (hList != null)
+                    {
                         foreach (IRequestHandler h in hList)
                         {
                             if (h is ILogAppender)
@@ -359,7 +360,7 @@ namespace CityWebServer
         /// </summary>
         private void RegisterDefaultCWM()
         {
-            if (null != _cwMods)
+            if (_cwMods != null)
             {
                 _cwMods.Clear();
                 _cwMods = null;
@@ -370,7 +371,7 @@ namespace CityWebServer
                 if (um.Mod.Name.Equals("Integrated Web Server"))
                 {
                     // hey it's me! get our web root
-                    string testPath = Path.Combine(um.PluginInfo.modPath, "wwwroot");
+                    String testPath = Path.Combine(um.PluginInfo.modPath, "wwwroot");
                     if (Directory.Exists(testPath))
                     {
                         LogMessage(String.Format("Setting server wwwroot location: {0}", testPath));
@@ -381,7 +382,7 @@ namespace CityWebServer
             }
 
             LogMessage("adding default CityWebMods");
-            _cwMods = new Dictionary<string, CityWebMod>();
+            _cwMods = new Dictionary<String, CityWebMod>();
             _cwMods.Add("root", new RootCWM(this));
             _cwMods.Add("log", new LogCWM(this));
             _cwMods.Add("api", new APICWM(this));

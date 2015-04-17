@@ -33,7 +33,7 @@ namespace CityWebServer.RequestHandlers
             {
             }
 
-            public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
+            public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
             {
                 String body = String.Format("<pre>{0}</pre>", String.Join("", _server.LogLines.ToArray()));
                 var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Log", _server.Mods, body);

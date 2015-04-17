@@ -18,7 +18,7 @@ namespace CityWebServer.RequestHandlers
             _chirpRetriever.LogMessage += (sender, args) => { OnLogMessage(args.LogLine); };
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             // TODO: Customize request handling.
             var messages = _chirpRetriever.Messages;

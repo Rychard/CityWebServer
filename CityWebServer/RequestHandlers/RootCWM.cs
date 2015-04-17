@@ -33,7 +33,7 @@ namespace CityWebServer.RequestHandlers
             {
             }
 
-            public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
+            public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
             {
                 List<String> links = new List<String>();
                 foreach (var cwm in _server.Mods.OrderBy(obj => obj.ModID))
@@ -50,9 +50,9 @@ namespace CityWebServer.RequestHandlers
                 return new HtmlResponseFormatter(template);
             }
 
-            public override Boolean ShouldHandle(HttpListenerRequest request, string slug)
+            public override Boolean ShouldHandle(HttpListenerRequest request, String slug)
             {
-                string url = request.Url.AbsolutePath;
+                String url = request.Url.AbsolutePath;
                 return (null != url && (url.Equals("") || url.Equals("/")));
             }
         }
