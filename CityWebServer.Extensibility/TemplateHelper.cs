@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CityWebServer.Extensibility;
 
-namespace CityWebServer.Helpers
+namespace CityWebServer.Extensibility
 {
     public static class TemplateHelper
     {
@@ -49,7 +48,7 @@ namespace CityWebServer.Helpers
             }
             catch (Exception ex)
             {
-                IntegratedWebServer.LogMessage(ex.ToString());
+                // IntegratedWebServer.LogMessage(ex.ToString());
                 return tokenReplacements["#PAGEBODY#"];
             }
         }
