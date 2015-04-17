@@ -17,6 +17,7 @@ namespace CityWebServer.Helpers
 
         public IUserMod Mod { get { return _umod; } }
         public PluginManager.PluginInfo PluginInfo { get { return _pi; } }
+        public Boolean isMe { get; set; }
 
         UserMod(PluginManager.PluginInfo pi)
         {
@@ -33,6 +34,7 @@ namespace CityWebServer.Helpers
             {
                 _umod = insts[0];
             }
+            isMe = false;
         }
 
         /// <summary>

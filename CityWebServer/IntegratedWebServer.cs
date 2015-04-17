@@ -29,7 +29,8 @@ namespace CityWebServer
         private String _wwwroot = null;
         private Boolean _secondPass = false;
         private Boolean _cwmPass = false;
-        
+
+        private HandlerCWM _hWrap; // the CWM to use for wrapping naked handlers
         private Dictionary<String, CityWebMod> _cwMods; // the list of CityWebMods we've identified and registered
         private List<UserMod> _usrMods = null; // utility list of all UserMods found in ColossalFramework PluginManager
 
@@ -43,7 +44,7 @@ namespace CityWebServer
         public String CityName { get { return _cityName; } }
 
         public String WebRoot { get { return _wwwroot; } }
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="IntegratedWebServer"/> class.
         /// </summary>
@@ -127,12 +128,6 @@ namespace CityWebServer
             {
                 _cwMods.Clear();
                 _cwMods = null;
-            }
-            if (null != _usrMods) // TODO: we ought to clean this up much sooner, only needed for init and i don't
-                // like hanging on to these references for very long
-            {
-                _usrMods.Clear();
-                _usrMods = null;
             }
 
             Configuration.SaveSettings();
@@ -235,14 +230,25 @@ namespace CityWebServer
                 }
             }
 
-            if (slug != null && _cwMods.ContainsKey(slug))
+            if (slug != null)
             {
-                CityWebMod cwm;
-                _cwMods.TryGetValue(slug, out cwm);
-                wwwroot = cwm.WebRoot;
+                CityWebMod cwm = null;
                 try
                 {
-                    handled = cwm.HandleRequest(request, response, slug, wwwroot);
+                    if (_cwMods.ContainsKey(slug))
+                    {
+                        _cwMods.TryGetValue(slug, out cwm);
+                        wwwroot = cwm.WebRoot;
+                        handled = cwm.HandleRequest(request, response, slug, wwwroot);
+                    }
+                    if (!handled)
+                    {
+                        handled = _hWrap.HandleRequest(request, response, null, this.WebRoot);
+                        if (handled)
+                        {
+                            wwwroot = this.WebRoot;
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -307,42 +313,51 @@ namespace CityWebServer
         /// </summary>
         private void RegisterCWM()
         {
-            LogMessage("Looking for CityWebMods...");
+            LogMessage("Looking for CityWebMods and naked handlers...");
             foreach (UserMod um in _usrMods) {
-                if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin) { continue; }
+                if (!um.PluginInfo.isEnabled || um.PluginInfo.isBuiltin || um.isMe) { continue; }
                 if (um.Mod == null) { continue; }
 
                 LogMessage(String.Format("scanning {0} &lt;{1}&gt;...", um.PluginInfo.name, um.Mod.GetType()));
                 CityWebMod cwm = CityWebMod.CreateByReflection(um, this);
-                if (cwm == null) { continue; }
-
-                String slug = cwm.ModID;
-                if (slug == null || slug.IsNullOrWhiteSpace())
+                if (cwm == null)
                 {
-                    LogMessage(String.Format("Invalid CityWebMod \"{0}\" by \"{1}\"", cwm.ModName, cwm.ModAuthor));
-                }
-                else if (_cwMods.ContainsKey(slug))
-                {
-                    LogMessage(String.Format("Conflicting CityWebMod; ID already exists! {0}:\"{1}\" by \"{2}\"", slug, cwm.ModName, cwm.ModAuthor));
+                    _hWrap.AddHandlers(um, this);
                 }
                 else
                 {
-                    LogMessage(String.Format("Loaded CityWebMod {0}:\"{1}\" by \"{2}\"", slug, cwm.ModName, cwm.ModAuthor));
-                    _cwMods.Add(slug, cwm);
-                    List<IRequestHandler> hList = cwm.GetHandlers(this);
-                    if (hList != null)
+                    String slug = cwm.ModID;
+                    if (slug == null || slug.IsNullOrWhiteSpace())
                     {
-                        foreach (IRequestHandler h in hList)
+                        LogMessage(String.Format("Invalid CityWebMod \"{0}\" by \"{1}\"", cwm.ModName, cwm.ModAuthor));
+                    }
+                    else if (_cwMods.ContainsKey(slug))
+                    {
+                        LogMessage(String.Format("Conflicting CityWebMod; ID already exists! {0}:\"{1}\" by \"{2}\"", slug, cwm.ModName, cwm.ModAuthor));
+                    }
+                    else
+                    {
+                        LogMessage(String.Format("Loaded CityWebMod {0}:\"{1}\" by \"{2}\"", slug, cwm.ModName, cwm.ModAuthor));
+                        _cwMods.Add(slug, cwm);
+                        List<IRequestHandler> hList = cwm.GetHandlers(this);
+                        if (hList != null)
                         {
-                            if (h is ILogAppender)
+                            foreach (IRequestHandler h in hList)
                             {
-                                ILogAppender la = (h as ILogAppender);
-                                la.LogMessage += RequestHandlerLogAppender_OnLogMessage;
+                                if (h is ILogAppender)
+                                {
+                                    ILogAppender la = (h as ILogAppender);
+                                    la.LogMessage += RequestHandlerLogAppender_OnLogMessage;
+                                }
                             }
                         }
                     }
                 }
             }
+
+            // we are done with _usrMods now; clear it up so we aren't holding references into the engine
+            _usrMods.Clear();
+            _usrMods = null;
 
             _cwmPass = true;
         }
@@ -371,6 +386,7 @@ namespace CityWebServer
                 if (um.Mod.Name.Equals("Integrated Web Server"))
                 {
                     // hey it's me! get our web root
+                    um.isMe = true;
                     String testPath = Path.Combine(um.PluginInfo.modPath, "wwwroot");
                     if (Directory.Exists(testPath))
                     {
@@ -386,6 +402,7 @@ namespace CityWebServer
             _cwMods.Add("root", new RootCWM(this));
             _cwMods.Add("log", new LogCWM(this));
             _cwMods.Add("api", new APICWM(this));
+            _cwMods.Add("handlers", _hWrap = new HandlerCWM(this));
         }
 
         #region Logging

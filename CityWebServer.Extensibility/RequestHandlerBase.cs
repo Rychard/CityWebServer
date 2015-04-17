@@ -22,6 +22,9 @@ namespace CityWebServer.Extensibility
         #endregion ILogAppender Implementation
 
         protected readonly IWebServer _server;
+        protected int _priority = 100;
+        protected String _name = null;
+        protected String _author = null;
         protected String _mainPath;
 
         private RequestHandlerBase()
@@ -34,10 +37,40 @@ namespace CityWebServer.Extensibility
             _mainPath = mainPath;
         }
 
+        protected RequestHandlerBase(IWebServer server, String name, String author, int priority, String mainPath)
+        {
+            _server = server;
+            _name = name;
+            _author = author;
+            _priority = priority;
+            _mainPath = mainPath;
+        }
+
+        public RequestHandlerBase(IWebServer server)
+        {
+            _server = server;
+            _mainPath = null;
+        }
+
         /// <summary>
         /// Gets the server that is currently servicing this instance.
         /// </summary>
         public virtual IWebServer Server { get { return _server; } }
+
+        /// <summary>
+        /// Gets the priority of this request handler.  A request will be handled by the request handler with the lowest priority.
+        /// </summary>
+        public virtual int Priority { get { return _priority; } }
+
+        /// <summary>
+        /// Gets the display name of this request handler.
+        /// </summary>
+        public virtual String Name { get { return _name; } }
+
+        /// <summary>
+        /// Gets the author of this request handler.
+        /// </summary>
+        public virtual String Author { get { return _author; } }
 
         /// <summary>
         /// Gets the absolute path to the main page for this request handler.  Your class is responsible for handling requests at this path.
@@ -49,7 +82,14 @@ namespace CityWebServer.Extensibility
         /// </summary>
         public virtual Boolean ShouldHandle(HttpListenerRequest request, String slug)
         {
-            return (request.Url.AbsolutePath.Equals(String.Format("/{0}{1}", slug, _mainPath), StringComparison.OrdinalIgnoreCase));
+            if (slug == null)
+            {
+                return request.Url.AbsolutePath.Equals(_mainPath, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                return request.Url.AbsolutePath.Equals(String.Format("/{0}{1}", slug, _mainPath), StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         /// <summary>

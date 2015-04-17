@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Net;
-using ColossalFramework.Plugins;
 using CityWebServer.Helpers;
 using CityWebServer.Extensibility;
 using CityWebServer.Extensibility.Responses;
@@ -35,16 +34,7 @@ namespace CityWebServer.RequestHandlers
 
             public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
             {
-                List<String> links = new List<String>();
-                foreach (var cwm in _server.Mods.OrderBy(obj => obj.ModID))
-                {
-                    if (!cwm.ModID.Equals("root")) {
-                        links.Add(String.Format("<li><a href='{1}/'>{0}</a> by {2}</li>", cwm.ModName, cwm.ModID, cwm.ModAuthor));
-                    }
-                }
-
-                String body = String.Format("<ul>{0}</ul>", String.Join("", links.ToArray()));
-                var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Home", _server.Mods, body);
+                var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Home", _server.Mods, "");
                 var template = TemplateHelper.PopulateTemplate("index", wwwroot, tokens);
 
                 return new HtmlResponseFormatter(template);

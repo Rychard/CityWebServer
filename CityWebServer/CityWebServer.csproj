@@ -65,6 +65,7 @@
     <Compile Include="Helpers\CitizenExtensions.cs" />
     <Compile Include="Helpers\UserMod.cs" />
     <Compile Include="RequestHandlers\APICWM.cs" />
+    <Compile Include="RequestHandlers\HandlerCWM.cs" />
     <Compile Include="RequestHandlers\RootCWM.cs" />
     <Compile Include="RequestHandlers\LogCWM.cs" />
     <Compile Include="Helpers\CityWebMod.cs" />

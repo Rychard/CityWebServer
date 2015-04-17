@@ -11,8 +11,26 @@ namespace CityWebServer.Extensibility
         IWebServer Server { get; }
 
         /// <summary>
+        /// Gets the priority of this request handler.  A request will be handled by the request handler with the lowest priority.
+        /// </summary>
+        int Priority { get; }
+
+        /// <summary>
+        /// Gets the display name of this request handler.
+        /// </summary>
+        String Name { get; }
+
+        /// <summary>
+        /// Gets the author of this request handler.
+        /// </summary>
+        String Author { get; }
+
+        /// <summary>
         /// Gets the absolute path to the main page for this request handler.  Your class is responsible for handling requests at this path.
         /// </summary>
+        /// <remarks>
+        /// When set to a value other than <c>null</c>, the Web Server will show this url as a link on the home page.
+        /// </remarks>
         String MainPath { get; }
 
         /// <summary>
