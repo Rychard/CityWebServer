@@ -3,13 +3,13 @@ using System.Net;
 using CityWebServer.Extensibility;
 using JetBrains.Annotations;
 
-namespace SampleWebServerExtension
+namespace SampleNakedHandlerMod
 {
     [UsedImplicitly]
     public class SampleRequestHandler : RequestHandlerBase
     {
         public SampleRequestHandler(IWebServer server)
-            : base(server, "/")
+            : base(server, "Sample Naked Handler", "Rychard", 100, "/samplenaked")
         {
         }
 

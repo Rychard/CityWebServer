@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CityWebServer", "CityWebSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CityWebServer.Extensibility", "CityWebServer.Extensibility\CityWebServer.Extensibility.csproj", "{DB96EFB4-FA45-4ACC-8D51-7ED37065CC79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebServerExtension", "SampleWebServerExtension\SampleWebServerExtension.csproj", "{7DF15DF6-C475-4866-9111-F5150C1336E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleNakedHandlerMod", "SampleNakedHandlerMod\SampleNakedHandlerMod.csproj", "{671CB9E5-3EFD-4466-935E-1BF58470296F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleCityWebMod", "SampleCityWebMod\SampleCityWebMod.csproj", "{7DF15DF6-C475-4866-9111-F5150C1336E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +25,10 @@ Global
 		{DB96EFB4-FA45-4ACC-8D51-7ED37065CC79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB96EFB4-FA45-4ACC-8D51-7ED37065CC79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB96EFB4-FA45-4ACC-8D51-7ED37065CC79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{671CB9E5-3EFD-4466-935E-1BF58470296F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{671CB9E5-3EFD-4466-935E-1BF58470296F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{671CB9E5-3EFD-4466-935E-1BF58470296F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{671CB9E5-3EFD-4466-935E-1BF58470296F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7DF15DF6-C475-4866-9111-F5150C1336E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7DF15DF6-C475-4866-9111-F5150C1336E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DF15DF6-C475-4866-9111-F5150C1336E1}.Release|Any CPU.ActiveCfg = Release|Any CPU

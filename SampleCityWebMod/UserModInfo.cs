@@ -3,28 +3,28 @@ using System.Collections.Generic;
 using ICities;
 using CityWebServer.Extensibility;
 
-namespace SampleWebServerExtension
+namespace SampleCityWebMod
 {
     public class UserModInfo : IUserMod, ICityWebMod
     {
         public String Name
         {
-            get { return "Sample Web Server Extension"; }
+            get { return "CityWebServer - Sample CityWebMod"; }
         }
 
         public String ModName
         {
-            get { return "Sample Extension"; }
+            get { return "Sample CWM"; }
         }
 
         public String ModAuthor
         {
-            get { return "Rychard"; }
+            get { return "nezroy"; }
         }
 
         public String ModID
         {
-            get { return "sample"; }
+            get { return "samplecwm"; }
         }
 
         public String Description
