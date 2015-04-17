@@ -13,7 +13,7 @@ namespace CityWebServer.RequestHandlers
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
         {
             // TODO: Expand upon this to expose substantially more information.
             var economyManager = Singleton<EconomyManager>.instance;

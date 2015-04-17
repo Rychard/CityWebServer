@@ -242,13 +242,13 @@ namespace CityWebServer
                 wwwroot = cwm.WebRoot;
                 try
                 {
-                    handled = cwm.HandleRequest(request, response);
+                    handled = cwm.HandleRequest(request, response, slug, wwwroot);
                 }
                 catch (Exception ex)
                 {
                     String errorBody = String.Format("<h1>An error has occurred!</h1><pre>{0}</pre>", ex);
                     var tokens = TemplateHelper.GetTokenReplacements(_cityName, "Error", this.Mods, errorBody);
-                    var template = TemplateHelper.PopulateTemplate("index", _wwwroot, tokens);
+                    var template = TemplateHelper.PopulateTemplate("content", _wwwroot, tokens);
 
                     IResponseFormatter errorResponseFormatter = new HtmlResponseFormatter(template);
                     errorResponseFormatter.WriteContent(response);
@@ -316,21 +316,6 @@ namespace CityWebServer
                 CityWebMod cwm = CityWebMod.CreateByReflection(um, this);
                 if (null == cwm) continue;
 
-                // LogMessage(String.Format("Loading mod \"{0}\"", cwm.ModName));
-
-                /*
-                CityWebPluginInfo cwpi = null;
-                try
-                {
-                    cwpi = new CityWebPluginInfo(cwp, um.PluginInfo, this);
-                }
-                catch (Exception ex)
-                {
-                    LogMessage(String.Format("Failed to load plugin: \"{0}\"", ex));
-                    continue;
-                }
-                 */
-
                 string slug = cwm.ModID;
                 if (slug == null || slug.IsNullOrWhiteSpace())
                 {
@@ -370,7 +355,7 @@ namespace CityWebServer
         }
         
         /// <summary>
-        /// Does some initial setup dependent on scanning plugins and also default/core CWM registration.
+        /// Does some initial setup dependent on scanning mods and also default/core CWM registration.
         /// </summary>
         private void RegisterDefaultCWM()
         {

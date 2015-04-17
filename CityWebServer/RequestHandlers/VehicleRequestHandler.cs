@@ -16,7 +16,7 @@ namespace CityWebServer.RequestHandlers
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
         {
             var vehicleManager = Singleton<VehicleManager>.instance;
 

@@ -55,7 +55,7 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        public abstract IResponseFormatter Handle(HttpListenerRequest request);
+        public abstract IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot);
 
         /// <summary>
         /// Returns a response in JSON format.

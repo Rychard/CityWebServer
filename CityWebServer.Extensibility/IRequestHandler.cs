@@ -23,6 +23,6 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        IResponseFormatter Handle(HttpListenerRequest request);
+        IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot);
     }
 }

@@ -33,7 +33,7 @@ namespace CityWebServer.RequestHandlers
             {
             }
 
-            public override IResponseFormatter Handle(HttpListenerRequest request)
+            public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
             {
                 List<String> links = new List<String>();
                 foreach (var cwm in _server.Mods.OrderBy(obj => obj.ModID))
@@ -45,7 +45,7 @@ namespace CityWebServer.RequestHandlers
 
                 String body = String.Format("<ul>{0}</ul>", String.Join("", links.ToArray()));
                 var tokens = TemplateHelper.GetTokenReplacements(_server.CityName, "Home", _server.Mods, body);
-                var template = TemplateHelper.PopulateTemplate("index", _server.WebRoot, tokens);
+                var template = TemplateHelper.PopulateTemplate("index", wwwroot, tokens);
 
                 return new HtmlResponseFormatter(template);
             }

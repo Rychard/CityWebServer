@@ -17,7 +17,7 @@ namespace CityWebServer.Extensibility
             return (request.Url.AbsolutePath.StartsWith(String.Format("/{0}{1}", slug, _mainPath), StringComparison.OrdinalIgnoreCase));
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
         {
             switch (request.HttpMethod)
             {

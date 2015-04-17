@@ -36,12 +36,12 @@ namespace CityWebServer.Helpers
         {
         }        
 
-        public bool HandleRequest(HttpListenerRequest request, HttpListenerResponse response)
+        public bool HandleRequest(HttpListenerRequest request, HttpListenerResponse response, string slug, string wwwroot)
         {
-            var handler = _handlers.FirstOrDefault(obj => obj.ShouldHandle(request, _ID));
+            var handler = _handlers.FirstOrDefault(obj => obj.ShouldHandle(request, slug));
             if (null == handler) return false;
 
-            IResponseFormatter responseFormatterWriter = handler.Handle(request);
+            IResponseFormatter responseFormatterWriter = handler.Handle(request, slug, wwwroot);
             responseFormatterWriter.WriteContent(response);
             return true;
         }

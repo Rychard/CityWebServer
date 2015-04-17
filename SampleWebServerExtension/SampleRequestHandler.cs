@@ -13,7 +13,7 @@ namespace SampleWebServerExtension
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, string slug, string wwwroot)
         {
             const String content = "This is a sample page!";
 
