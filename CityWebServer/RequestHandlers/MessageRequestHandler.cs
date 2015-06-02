@@ -12,13 +12,13 @@ namespace CityWebServer.RequestHandlers
         private readonly ChirpRetriever _chirpRetriever;
 
         public MessageRequestHandler(IWebServer server)
-            : base(server, new Guid("b4efeced-1dbb-435a-8999-9f8adaa5036e"), "Chirper Messages", "Rychard", 100, "/Messages")
+            : base(server, "/Messages")
         {
             _chirpRetriever = new ChirpRetriever();
             _chirpRetriever.LogMessage += (sender, args) => { OnLogMessage(args.LogLine); };
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             // TODO: Customize request handling.
             var messages = _chirpRetriever.Messages;

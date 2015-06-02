@@ -12,11 +12,11 @@ namespace CityWebServer.RequestHandlers
     public class VehicleRequestHandler : RequestHandlerBase
     {
         public VehicleRequestHandler(IWebServer server)
-            : base(server, new Guid("2be6546a-d416-4939-8e08-1d0b739be835"), "Vehicle", "Rychard", 100, "/Vehicle")
+            : base(server, "/Vehicle")
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             var vehicleManager = Singleton<VehicleManager>.instance;
 

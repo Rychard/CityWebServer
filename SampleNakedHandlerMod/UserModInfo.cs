@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using ICities;
 
-namespace SampleWebServerExtension
+namespace SampleNakedHandlerMod
 {
     public class UserModInfo : IUserMod
     {
         public String Name
         {
-            get { return "Sample Web Server Extension"; }
+            get { return "CityWebServer - Sample Naked Handler Mod"; }
         }
 
         public String Description

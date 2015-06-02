@@ -14,11 +14,11 @@ namespace CityWebServer.RequestHandlers
     public class CityInfoRequestHandler : RequestHandlerBase
     {
         public CityInfoRequestHandler(IWebServer server)
-            : base(server, new Guid("eeada0d0-f1d2-43b0-9595-2a6a4d917631"), "City Info", "Rychard", 100, "/CityInfo")
+            : base(server, "/CityInfo")
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             if (request.QueryString.HasKey("showList"))
             {

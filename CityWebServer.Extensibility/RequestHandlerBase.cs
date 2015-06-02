@@ -22,35 +22,40 @@ namespace CityWebServer.Extensibility
         #endregion ILogAppender Implementation
 
         protected readonly IWebServer _server;
-        protected Guid _handlerID;
-        protected int _priority;
-        protected String _name;
-        protected String _author;
+        protected int _priority = 100;
+        protected String _name = null;
+        protected String _author = null;
         protected String _mainPath;
 
         private RequestHandlerBase()
         {
         }
 
-        protected RequestHandlerBase(IWebServer server, Guid handlerID, String name, String author, int priority, String mainPath)
+        protected RequestHandlerBase(IWebServer server, String mainPath)
         {
             _server = server;
-            _handlerID = handlerID;
+            _mainPath = mainPath;
+        }
+
+        protected RequestHandlerBase(IWebServer server, String name, String author, int priority, String mainPath)
+        {
+            _server = server;
             _name = name;
             _author = author;
             _priority = priority;
             _mainPath = mainPath;
         }
 
+        public RequestHandlerBase(IWebServer server)
+        {
+            _server = server;
+            _mainPath = null;
+        }
+
         /// <summary>
         /// Gets the server that is currently servicing this instance.
         /// </summary>
         public virtual IWebServer Server { get { return _server; } }
-
-        /// <summary>
-        /// Gets a unique identifier for this handler.  Only one handler can be loaded with a given identifier.
-        /// </summary>
-        public virtual Guid HandlerID { get { return _handlerID; } }
 
         /// <summary>
         /// Gets the priority of this request handler.  A request will be handled by the request handler with the lowest priority.
@@ -70,23 +75,27 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Gets the absolute path to the main page for this request handler.  Your class is responsible for handling requests at this path.
         /// </summary>
-        /// <remarks>
-        /// When set to a value other than <c>null</c>, the Web Server will show this url as a link on the home page.
-        /// </remarks>
         public virtual String MainPath { get { return _mainPath; } }
 
         /// <summary>
         /// Returns a value that indicates whether this handler is capable of servicing the given request.
         /// </summary>
-        public virtual Boolean ShouldHandle(HttpListenerRequest request)
+        public virtual Boolean ShouldHandle(HttpListenerRequest request, String slug)
         {
-            return (request.Url.AbsolutePath.Equals(_mainPath, StringComparison.OrdinalIgnoreCase));
+            if (slug == null)
+            {
+                return request.Url.AbsolutePath.Equals(_mainPath, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                return request.Url.AbsolutePath.Equals(String.Format("/{0}{1}", slug, _mainPath), StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        public abstract IResponseFormatter Handle(HttpListenerRequest request);
+        public abstract IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot);
 
         /// <summary>
         /// Returns a response in JSON format.

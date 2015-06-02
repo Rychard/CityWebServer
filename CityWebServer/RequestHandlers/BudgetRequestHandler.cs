@@ -9,11 +9,11 @@ namespace CityWebServer.RequestHandlers
     public class BudgetRequestHandler : RequestHandlerBase
     {
         public BudgetRequestHandler(IWebServer server)
-            : base(server, new Guid("87205a0d-1b53-47bd-91fa-9cddf0a3bd9e"), "Budget", "Rychard", 100, "/Budget")
+            : base(server, "/Budget")
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             // TODO: Expand upon this to expose substantially more information.
             var economyManager = Singleton<EconomyManager>.instance;

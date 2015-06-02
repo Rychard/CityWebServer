@@ -63,11 +63,16 @@
   <ItemGroup>
     <Compile Include="Helpers\ApacheMimeTypes.cs" />
     <Compile Include="Helpers\CitizenExtensions.cs" />
+    <Compile Include="Helpers\UserMod.cs" />
+    <Compile Include="RequestHandlers\APICWM.cs" />
+    <Compile Include="RequestHandlers\HandlerCWM.cs" />
+    <Compile Include="RequestHandlers\RootCWM.cs" />
+    <Compile Include="RequestHandlers\LogCWM.cs" />
+    <Compile Include="Helpers\CityWebMod.cs" />
     <Compile Include="Helpers\ConfigurationHelper.cs" />
     <Compile Include="Helpers\DistrictExtensions.cs" />
     <Compile Include="Helpers\EnumExtensions.cs" />
     <Compile Include="Helpers\NameValueCollectionExtensions.cs" />
-    <Compile Include="Helpers\TemplateHelper.cs" />
     <Compile Include="Models\ChirperMessage.cs" />
     <Compile Include="Models\CityInfo.cs" />
     <Compile Include="Models\DistrictInfo.cs" />

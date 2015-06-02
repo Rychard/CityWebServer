@@ -11,11 +11,6 @@ namespace CityWebServer.Extensibility
         IWebServer Server { get; }
 
         /// <summary>
-        /// Gets a unique identifier for this handler.  Only one handler can be loaded with a given identifier.
-        /// </summary>
-        Guid HandlerID { get; }
-
-        /// <summary>
         /// Gets the priority of this request handler.  A request will be handled by the request handler with the lowest priority.
         /// </summary>
         int Priority { get; }
@@ -41,11 +36,11 @@ namespace CityWebServer.Extensibility
         /// <summary>
         /// Returns a value that indicates whether this handler is capable of servicing the given request.
         /// </summary>
-        Boolean ShouldHandle(HttpListenerRequest request);
+        Boolean ShouldHandle(HttpListenerRequest request, String slug);
 
         /// <summary>
         /// Handles the specified request.  The method should not close the stream.
         /// </summary>
-        IResponseFormatter Handle(HttpListenerRequest request);
+        IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot);
     }
 }

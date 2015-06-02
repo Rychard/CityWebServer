@@ -3,17 +3,17 @@ using System.Net;
 using CityWebServer.Extensibility;
 using JetBrains.Annotations;
 
-namespace SampleWebServerExtension
+namespace SampleNakedHandlerMod
 {
     [UsedImplicitly]
     public class SampleRequestHandler : RequestHandlerBase
     {
         public SampleRequestHandler(IWebServer server)
-            : base(server, new Guid("1a255904-bf72-406e-b5e2-c5a43fdd9bba"), "Sample", "Rychard", 100, "/Sample")
+            : base(server, "Sample Naked Handler", "Rychard", 100, "/samplenaked")
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             const String content = "This is a sample page!";
 

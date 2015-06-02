@@ -13,11 +13,11 @@ namespace CityWebServer.RequestHandlers
     public class TransportRequestHandler : RequestHandlerBase
     {
         public TransportRequestHandler(IWebServer server)
-            : base(server, new Guid("89c8ef27-fc8c-4fe8-9793-1f6432feb179"), "Transport", "Rychard", 100, "/Transport")
+            : base(server, "/Transport")
         {
         }
 
-        public override IResponseFormatter Handle(HttpListenerRequest request)
+        public override IResponseFormatter Handle(HttpListenerRequest request, String slug, String wwwroot)
         {
             var transportManager = Singleton<TransportManager>.instance;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 // Source: https://raw.githubusercontent.com/cymen/ApacheMimeTypesToDotNet/master/ApacheMimeTypes.cs
-namespace ApacheMimeTypes
+namespace CityWebServer.Helpers
 {
     internal class Apache
     {
