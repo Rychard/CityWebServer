@@ -114,7 +114,7 @@ namespace CityWebServer.Models
             foreach (var policy in policies)
             {
                 String policyName = Enum.GetName(typeof(DistrictPolicies.Policies), policy);
-                Boolean isEnabled = districtManager.IsCityPolicySet(DistrictPolicies.Policies.AlligatorBan);
+                Boolean isEnabled = districtManager.IsCityPolicySet(policy);
                 yield return new PolicyInfo
                 {
                     Name = policyName,
