@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Net;
 using CityWebServer.Extensibility;
-using JetBrains.Annotations;
 
 namespace SampleWebServerExtension
 {
-    [UsedImplicitly]
     public class SampleRequestHandler : RequestHandlerBase
     {
         public SampleRequestHandler(IWebServer server)

@@ -1,0 +1,15 @@
+This directory must contain the following files:
+
+- Assembly-CSharp.dll
+- ColossalManaged.dll
+- ICities.dll
+- UnityEngine.dll
+- UnityEngine.UI.dll
+
+These files can be found in the following location:
+
+    <Steam>\SteamApps\common\Cities_Skylines\Cities_Data\Managed
+
+Copy those files into this directory.
+
+(I personally prefer to create symbolic links, but copying them is the easier solution.)
