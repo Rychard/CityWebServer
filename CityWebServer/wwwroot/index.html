@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Cities: Skylines - Test</title>
+    <title>Cities: Skylines - City Statistics</title>
     <link href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css' rel='stylesheet'>
     <style type="text/css">
         body { padding-top: 50px; }
@@ -22,24 +22,30 @@
                 <ul class="nav navbar-nav">
                     <li><a href="/">Home</a></li>
                     <li><a href="/Log">Log</a></li>
+                    <li><a href="/Budget">Budget</a></li>
+                    <li><a href="/Building">Building</a></li>
+                    <li><a href="/Messages">Chirper Messages</a></li>
+                    <li><a href="/CityInfo">City Info</a></li>
+                    <li><a href="/Transport">Transport</a></li>
+                    <li><a href="/Vehicle">Vehicle</a></li>
                     <!-- TODO: Dynamically populate this with links to other handlers.  -->
                 </ul>
             </div>
         </div>
     </nav>
     <div class="container">
-        <h1>Cities: Skylines - Integrated Web Server</h1>
+        <h1><span data-bind="text: Name">'s District Statistics</h1>
         <div id="chart"></div>
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
                     <th>District ID</th>
                     <th>Name</th>
-                    <th>Population</th>
-                    <th>Buildings</th>
-                    <th>Vehicles</th>
-                    <th>Households (Max)</th>
-                    <th>Jobs (Max)</th>
+                    <th>Population | vs World*</th>
+                    <th>Buildings | vs World*</th>
+                    <th>Vehicles | vs World*</th>
+                    <th>Households (Max) | %</th>
+                    <th>Jobs (Max) | %</th>
                     <th>Weekly Tourists</th>
                     <th>Land Value</th>
                     <th>Pollution</th>
@@ -51,11 +57,11 @@
             <tr>
                 <td data-bind="text: DistrictID"></td>
                 <td data-bind="text: DistrictName"></td>
-                <td data-bind="text: TotalPopulationCount"></td>
-                <td data-bind="text: TotalBuildingCount"></td>
-                <td data-bind="text: TotalVehicleCount"></td>
-                <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
-                <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>)</td>
+                <td><span data-bind="text: TotalPopulationCount"></span> | <span data-bind="text: (TotalPopulationCount / GlobalDistrict.TotalPopulationCount).toFixed(0) + '%'"></span></td>
+                <td><span data-bind="text: TotalBuildingCount"></span> | <span data-bind="text: (TotalBuildingCount / GlobalDistrict.TotalBuildingCount).toFixed(0) + '%'"></span></td>
+                <td><span data-bind="text: TotalVehicleCount"></span> | <span data-bind="text: (TotalVehicleCount / GlobalDistrict.TotalVehicleCount).toFixed(0) + '%'"></span></td>
+                <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>) | <span data-bind="text: (CurrentHouseholds / AvailableHouseholds).toFixed(0) + '%'"></span></td>
+                <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>) | <span data-bind="text: (CurrentJobs / AvailableJobs).toFixed(0) + '%'"></span></td>
                 <td data-bind="text: WeeklyTouristVisits"></td>
                 <td data-bind="text: '₡' + AverageLandValue()"></td>
                 <td data-bind="text: (Pollution() * 100).toFixed(0) + '%'"></td>
@@ -69,8 +75,8 @@
                     <td data-bind="text: GlobalDistrict.TotalPopulationCount"></td>
                     <td data-bind="text: GlobalDistrict.TotalBuildingCount"></td>
                     <td data-bind="text: GlobalDistrict.TotalVehicleCount"></td>
-                    <td><span data-bind="text: GlobalDistrict.CurrentHouseholds"></span> (<span data-bind="text: GlobalDistrict.AvailableHouseholds"></span>)</td>
-                    <td><span data-bind="text: GlobalDistrict.CurrentJobs"></span> (<span data-bind="text: GlobalDistrict.AvailableJobs"></span>)</td>
+                    <td><span data-bind="text: GlobalDistrict.CurrentHouseholds"></span> (<span data-bind="text: GlobalDistrict.AvailableHouseholds"></span>) | <span data-bind="text: (CurrentHouseholds / AvailableHouseholds).toFixed(0) + '%'"></span></td>
+                    <td><span data-bind="text: GlobalDistrict.CurrentJobs"></span> (<span data-bind="text: GlobalDistrict.AvailableJobs"></span>) | <span data-bind="text: (GlobalDistrict.CurrentJobs / GlobalDistrict.AvailableJobs).toFixed(0) + '%'"></span></td>
                     <td data-bind="text: GlobalDistrict.WeeklyTouristVisits"></td>
                     <td data-bind="text: '₡' + GlobalDistrict.AverageLandValue()"></td>
                     <td data-bind="text: (GlobalDistrict.Pollution() * 100).toFixed(0) + '%'"></td>
@@ -78,6 +84,14 @@
             </tfoot>
         </table>
     </div>
+    <nav class="navbar bg-light">
+        <div class="container-fluid">
+            <span class="navbar-text">
+                * The vs World is a comparision between the distict and the rest of the world within the saved game. Due to the Total row being the value of the rest of the world for the specified column(s), the total row will not contail a vs World value.
+            </span>
+        </div>
+    </nav>
+        
     <script src='./jquery-2.1.3.min.js'></script>
     <script src='./bootstrap.min.js'></script>
     <script src='./knockout-3.3.0.js'></script>
