@@ -1,8 +1,34 @@
-function initializeChart() {
+function initializeSplineChart() {
     var c = new Highcharts.Chart({
     chart: {
             renderTo: 'chart',
             defaultSeriesType: 'spline',
+            events: { }
+        },
+        title: {
+            text: 'Statistics'
+        },
+        xAxis: {
+            type: 'datetime',
+            tickPixelInterval: 150
+        },
+        yAxis: {
+            minPadding: 0.2,
+            maxPadding: 0.2,
+            title: {
+                text: 'Value',
+                margin: 80
+            }
+        }
+    });
+    return c;
+}
+
+function initializePieChart() {
+    var c = new Highcharts.Chart({
+    chart: {
+            renderTo: 'chart2',
+            defaultSeriesType: 'pie',
             events: { }
         },
         title: {
@@ -89,11 +115,15 @@ function updateChart(vm, chart)
     {
         var district = districts[i];
         var districtName = district.DistrictName();
-
+	
         var seriesName = districtName + " - Population";
+	var seriesName2 = districtName + " - Jobs";
+	var seriesName3 = districtName + " - Density";
         var population = district.TotalPopulationCount();
-        addOrUpdateSeries(chart, seriesName, population, vm.Time());
-        updatedSeries.push(seriesName);
+	var jobs = district.CurrentJobs();
+	addOrUpdateSeries(chart, seriesName, population, vm.Time());
+	addOrUpdateSeries(chart, seriesName2, jobs, vm.Time());
+	updatedSeries.push(seriesName);
         deleteUnusedSeries(chart, updatedSeries);
     }
     chart.redraw();
