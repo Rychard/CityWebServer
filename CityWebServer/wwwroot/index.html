@@ -34,7 +34,16 @@
     <div class="container">
         <h1><span data-bind="text: Name"></span>'s City Statistics</h1>
         <div id="chart"></div>
+<div>
+<h4> Display Options </h4>
+<h5> Select how you'd like your data displayed: </h5>
+<div id="displayOptions" style="align-items:center;">	
+<div class="btn btn-default">Timeline</div> 
+<div class="btn btn-default">Column</div>
+<div class="btn btn-default">Pie</div>
+</div>
 <div id="graphOptions" style="align-items:center;">	
+<h5> Select what data you'd like displayed: </h5>
 <div class="btn btn-default">Population</div> 
 <div class="btn btn-default">Tourists</div>
 <div class="btn btn-default">Households</div>
@@ -45,6 +54,8 @@
 <div class="btn btn-default">Job Fullness</div>
 <div class="btn btn-default">Tourist Saturation</div> 
 </div>
+</div>
+<h2><span data-bind="text: Name"></span>'s District Overview</h2>
         <table id="mainDataTable" class="table table-bordered table-striped">
             <thead>
                 <tr>
