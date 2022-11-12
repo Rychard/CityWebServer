@@ -1,4 +1,30 @@
+var graphChoice = 'Default';
+var querySelect = document.querySelectorAll('#graphOptions div');
+var endpoint = "./CityInfo";
+var viewModel;
+var chart;
+var initialized = false;
+var lastDate;
+let history = [];
+
+for(var i = 0; i < querySelect.length; i++){
+	querySelect[i].addEventListener("click", updateGraphChoice);
+}
+
+function updateGraphChoice(e){
+	graphChoice = e.currentTarget.innerHTML;
+	//console.log('before delete', chart.series)
+	chart.destroy();
+	chart = initializeSplineChart(viewModel);
+	updateChart(viewModel, chart);
+	//console.log('after delete', chart.series)
+}
+
 function initializeSplineChart() {
+var t = graphChoice;
+if(graphChoice == "Default"){
+t = "Statistics"
+}
     var c = new Highcharts.Chart({
     chart: {
             renderTo: 'chart',
@@ -6,77 +32,30 @@ function initializeSplineChart() {
             events: { }
         },
         title: {
-            text: 'Statistics'
+            text: t
         },
         xAxis: {
             type: 'datetime',
             tickPixelInterval: 150
         },
         yAxis: {
-            minPadding: 0.2,
-            maxPadding: 0.2,
+            minPadding: .02,
+            maxPadding: .02,
             title: {
-                text: 'Value',
-                margin: 80
+                text: 'Values',
+                margin: 5
             }
         }
     });
     return c;
 }
 
-function initializePieChart() {
-    var c = new Highcharts.Chart({
-    chart: {
-            renderTo: 'chart2',
-            defaultSeriesType: 'pie',
-            events: { }
-        },
-        title: {
-            text: 'Statistics'
-        },
-        xAxis: {
-            type: 'datetime',
-            tickPixelInterval: 150
-        },
-        yAxis: {
-            minPadding: 0.2,
-            maxPadding: 0.2,
-            title: {
-                text: 'Value',
-                margin: 80
-            }
-        }
-    });
-    return c;
-}
-
-function deleteUnusedSeries(chart, seriesArray)
-{
-    // seriesArray is an array that contains only the NAMES of the series that were updated this tick.
-
-    //for (var j = 0; j < chart.series.length; j++) {
-    //    var series = chart.series[j];
-    //    var isUsed = false;
-    //    for (var i = 0; i < seriesArray.length; i++) {
-    //        var usedSeriesName = seriesArray[i];
-    //        if (series.name == usedSeriesName) {
-    //            isUsed = true;
-    //        }
-    //    }
-
-    //    if (!isUsed) {
-    //        //console.log("Removing: " + chart.series[j].name);
-    //        chart.series[j].remove();
-    //        j = -1;
-    //    }
-
-    //}
-}
 
 function addOrUpdateSeries(theChart, seriesName, value, valueName)
 {
     var series;
     var matchFound = false;
+	
     if(theChart.series.length > 0)
     {
         for(var s = 0; s < theChart.series.length; s++)
@@ -85,14 +64,13 @@ function addOrUpdateSeries(theChart, seriesName, value, valueName)
             {
                 series = theChart.series[s];
                 matchFound = true;
-                s = theChart.series.length; // Stop looping
+                s = theChart.series.length;
             }
         }
     }
 
     if(!matchFound)
     {
-        //console.log("Adding series: " + seriesName);
         var seriesOptions = {
             id: seriesName,
             name: seriesName,
@@ -111,22 +89,76 @@ function updateChart(vm, chart)
 {
     var updatedSeries = [];
     var districts = vm.Districts();
+
+    var time = formatDate(vm.Time());
+    console.log(time);
+    var seriesName;
+    var dataPoint;
+
     for(var i = 0; i < districts.length; i++)
     {
         var district = districts[i];
-        var districtName = district.DistrictName();
+	seriesName = district.DistrictName();
+
+	if(graphChoice == "Population"){
+		dataPoint = district.TotalPopulationCount();
+	}
+	if(graphChoice == "Tourists"){
+		dataPoint = district.WeeklyTouristVisits();
+	}
+	if(graphChoice == "Households"){
+		dataPoint = district.CurrentHouseholds();
+	}
+	if(graphChoice == "Jobs Occupied"){
+		dataPoint = district.CurrentJobs();
+	}
+	if(graphChoice == "Household Vacancies"){
+		dataPoint = district.AvailableHouseholds()-district.CurrentHouseholds();
+	}
+	if(graphChoice == "Job Vacancies"){
+		dataPoint = district.AvailableJobs()-district.CurrentJobs();
+	}
+	if(graphChoice == "Household Fullness"){
+		dataPoint = doMath(district.CurrentHouseholds(), district.AvailableHouseholds());
+	}
+	if(graphChoice == "Job Fullness"){
+		dataPoint = doMath(district.CurrentJobs(), district.AvailableJobs());
+	}
+	if(graphChoice == "Tourist Saturation"){
+		dataPoint = doMath(district.WeeklyTouristVisits(), district.TotalPopulationCount());
+	}
+	if(graphChoice == "Default"){
+		graphChoice = 'Population';
+		dataPoint = district.TotalPopulationCount();
+	}
+
+
+	//console.log(dataPoint);
+	seriesName = seriesName + " - " + graphChoice;
+	addOrUpdateSeries(chart, seriesName, dataPoint, time);
 	
-        var seriesName = districtName + " - Population";
-	var seriesName2 = districtName + " - Jobs";
-	var seriesName3 = districtName + " - Density";
-        var population = district.TotalPopulationCount();
-	var jobs = district.CurrentJobs();
-	addOrUpdateSeries(chart, seriesName, population, vm.Time());
-	addOrUpdateSeries(chart, seriesName2, jobs, vm.Time());
+	
+	
 	updatedSeries.push(seriesName);
-        deleteUnusedSeries(chart, updatedSeries);
     }
     chart.redraw();
+}
+
+function formatDate(t){
+	t = Date.parse(t);
+	return t;
+}
+
+function doMath(v1,v2){
+	var r = 0;
+
+	if(!isFinite((v1 / v2)*100) || isNaN((v1 / v2)*100)){
+		r = 0;
+	} else {
+		r = ((v1 / v2)*100).toFixed(0);
+		r = parseInt(r);
+}
+	return r;
 }
 
 function filterTable() {
@@ -206,14 +238,7 @@ function sortTable(n) {
   }
 }
 
-    var endpoint = "./CityInfo";
-    var viewModel;
-    var chart;
-    var chart2;
-    var initialized = false;
-    var lastDate;
-    let history = [];
-    
+ 
     
     // Update the data once every second.
     window.setInterval(function ()
@@ -225,13 +250,13 @@ function sortTable(n) {
                     updateChart(viewModel, chart);
                     lastDate = viewModel.Time();
                 } else {
-                    console.log("Same Date: " + lastDate);
+                    //console.log("Same Date: " + lastDate);
                 }
             } else {
                 initialized = true;
                 viewModel = ko.mapping.fromJS(data);
                 ko.applyBindings(viewModel);
-                chart = initializeSplineChart(viewModel);
+		chart = initializeSplineChart(viewModel);
             }
         });
     }, 2000); // Every two seconds.
