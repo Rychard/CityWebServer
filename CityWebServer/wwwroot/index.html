@@ -1,11 +1,10 @@
-﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Cities: Skylines - Test</title>
+    <title>City Statistics</title>
     <link href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css' rel='stylesheet'>
     <style type="text/css">
         body { padding-top: 50px; }
@@ -22,41 +21,62 @@
                 <ul class="nav navbar-nav">
                     <li><a href="/">Home</a></li>
                     <li><a href="/Log">Log</a></li>
-                    <!-- TODO: Dynamically populate this with links to other handlers.  -->
+                    <li><a href="/Budget">Budget</a></li>
+                    <li><a href="/Building">Building</a></li>
+                    <li><a href="/Messages">Chirper Messages</a></li>
+                    <li><a href="/CityInfo">City Info</a></li>
+                    <li><a href="/Transport">Transport</a></li>
+                    <li><a href="/Vehicle">Vehicle</a></li>
                 </ul>
             </div>
         </div>
     </nav>
     <div class="container">
-        <h1>Cities: Skylines - Integrated Web Server</h1>
+        <h1><span data-bind="text: Name"></span>'s City Statistics</h1>
         <div id="chart"></div>
-        <table class="table table-bordered table-striped">
+<div id="graphOptions" style="align-items:center;">	
+<div class="btn btn-default">Population</div> 
+<div class="btn btn-default">Tourists</div>
+<div class="btn btn-default">Households</div>
+<div class="btn btn-default">Jobs Occupied</div>
+<div class="btn btn-default">Household Vacancies</div>
+<div class="btn btn-default">Job Vacancies</div> 
+<div class="btn btn-default">Household Fullness</div> 
+<div class="btn btn-default">Job Fullness</div>
+<div class="btn btn-default">Tourist Saturation</div> 
+</div>
+        <table id="mainDataTable" class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    <th>District ID</th>
-                    <th>Name</th>
-                    <th>Population</th>
-                    <th>Buildings</th>
-                    <th>Vehicles</th>
-                    <th>Households (Max)</th>
-                    <th>Jobs (Max)</th>
-                    <th>Weekly Tourists</th>
-                    <th>Land Value</th>
-                    <th>Pollution</th>
+                    <th onclick="sortTable(0)">Name</th>
+                    <th onclick="sortTable(1)">Population</th>
+		    <th onclick="sortTable(2)">Tourists</th>
+                    <th onclick="sortTable(3)">Households</th>
+		    <th onclick="sortTable(4)">Jobs</th>
+		    <th onclick="sortTable(5)">Vacant Households</th>
+                    <th onclick="sortTable(6)">Vacant Jobs</th>
+		    <th onclick="sortTable(7)">Household Fullness</th>
+                    <th onclick="sortTable(8)">Job Fullness</th>
+		    <!--<th>City Domination*</th>-->
+                    <th onclick="sortTable(9)">Tourist Saturation</th>
+                    <th onclick="sortTable(10)">Land Value</th>
+                    <th onclick="sortTable(11)">Pollution</th>
                 </tr>
             </thead>
             <tbody>
 
             <!-- ko foreach: Districts -->
             <tr>
-                <td data-bind="text: DistrictID"></td>
                 <td data-bind="text: DistrictName"></td>
-                <td data-bind="text: TotalPopulationCount"></td>
-                <td data-bind="text: TotalBuildingCount"></td>
-                <td data-bind="text: TotalVehicleCount"></td>
-                <td><span data-bind="text: CurrentHouseholds"></span> (<span data-bind="text: AvailableHouseholds"></span>)</td>
-                <td><span data-bind="text: CurrentJobs"></span> (<span data-bind="text: AvailableJobs"></span>)</td>
-                <td data-bind="text: WeeklyTouristVisits"></td>
+                <td><span data-bind="text: TotalPopulationCount"></span></td>
+		<td data-bind="text: WeeklyTouristVisits"></td>
+                <td><span data-bind="text: CurrentHouseholds"></span></td>
+		<td><span data-bind="text: CurrentJobs"></span></td>
+		<td><span data-bind="text: (AvailableHouseholds()-CurrentHouseholds()).toFixed(0)"></span></td>
+		<td><span data-bind="text: (AvailableJobs()-CurrentJobs()).toFixed(0)"></span></td>
+		<td><span data-bind="text: (((CurrentHouseholds() / AvailableHouseholds()) * 100).toFixed(2)) + '%'"></td>
+		<td><span data-bind="text: (((CurrentJobs() / AvailableJobs())) * 100).toFixed(2) + '%'"></span></td>
+		<td><span data-bind="text: ((WeeklyTouristVisits() / TotalPopulationCount()) * 100).toFixed(2) + '%'"></span></td>
                 <td data-bind="text: '₡' + AverageLandValue()"></td>
                 <td data-bind="text: (Pollution() * 100).toFixed(0) + '%'"></td>
             </tr>
@@ -64,60 +84,36 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td></td>
-                    <td>Total</td>
-                    <td data-bind="text: GlobalDistrict.TotalPopulationCount"></td>
-                    <td data-bind="text: GlobalDistrict.TotalBuildingCount"></td>
-                    <td data-bind="text: GlobalDistrict.TotalVehicleCount"></td>
-                    <td><span data-bind="text: GlobalDistrict.CurrentHouseholds"></span> (<span data-bind="text: GlobalDistrict.AvailableHouseholds"></span>)</td>
-                    <td><span data-bind="text: GlobalDistrict.CurrentJobs"></span> (<span data-bind="text: GlobalDistrict.AvailableJobs"></span>)</td>
-                    <td data-bind="text: GlobalDistrict.WeeklyTouristVisits"></td>
-                    <td data-bind="text: '₡' + GlobalDistrict.AverageLandValue()"></td>
-                    <td data-bind="text: (GlobalDistrict.Pollution() * 100).toFixed(0) + '%'"></td>
+                    <td><strong>Total</strong></td>
+                <td><span data-bind="text: GlobalDistrict.TotalPopulationCount"></span></td>
+		<td data-bind="text: GlobalDistrict.WeeklyTouristVisits"></td>
+                <td><span data-bind="text: GlobalDistrict.CurrentHouseholds"></span></td>
+		<td><span data-bind="text: GlobalDistrict.CurrentJobs"></span></td>
+		<td><span data-bind="text: (GlobalDistrict.AvailableHouseholds()-GlobalDistrict.CurrentHouseholds()).toFixed(0)"></span></td>
+		<td><span data-bind="text: (GlobalDistrict.AvailableJobs()-GlobalDistrict.CurrentJobs()).toFixed(0)"></span></td>
+		<td><span data-bind="text: (((GlobalDistrict.CurrentHouseholds() / GlobalDistrict.AvailableHouseholds()) * 100).toFixed(2)) + '%'"></td>
+		<td><span data-bind="text: (((GlobalDistrict.CurrentJobs() / GlobalDistrict.AvailableJobs())) * 100).toFixed(2) + '%'"></span></td>
+		<td><span data-bind="text: ((GlobalDistrict.WeeklyTouristVisits() / GlobalDistrict.TotalPopulationCount()) * 100).toFixed(2) + '%'"></span></td>
+                <td data-bind="text: '₡' + GlobalDistrict.AverageLandValue()"></td>
+                <td data-bind="text: (GlobalDistrict.Pollution() * 100).toFixed(0) + '%'"></td>
                 </tr>
             </tfoot>
         </table>
     </div>
+
+    <footer class="footer">
+	<div class="container">
+<input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search for names.."> <br />
+	      <p class="text-muted"> * City Domination is a comparision between the specified distict and the rest of the city.</p>	
+        </div>
+    </footer>
     <script src='./jquery-2.1.3.min.js'></script>
     <script src='./bootstrap.min.js'></script>
     <script src='./knockout-3.3.0.js'></script>
     <script src='./knockout.mapping-latest.js'></script>
     <script src="./highcharts.js"></script>
     <script src="./script.js"></script>
+    <script scr="./history.js"></script>
 
-    <script type="text/javascript">
-
-    var endpoint = "./CityInfo";
-    var viewModel;
-    var chart;
-    var initialized = false;
-    var lastDate;
-
-    //$.getJSON(endpoint, function (data)
-    //{
-    //    viewModel = ko.mapping.fromJS(data);
-    //});
-
-    // Update the data once every second.
-    window.setInterval(function ()
-    {
-        $.getJSON(endpoint, function(data) {
-            if (initialized) {
-                ko.mapping.fromJS(data, viewModel);
-                if (lastDate !== viewModel.Time()) {
-                    updateChart(viewModel, chart);
-                    lastDate = viewModel.Time();
-                } else {
-                    console.log("Same Date: " + lastDate);
-                }
-            } else {
-                initialized = true;
-                viewModel = ko.mapping.fromJS(data);
-                ko.applyBindings(viewModel);
-                chart = initializeChart(viewModel);
-            }
-        });
-    }, 2000); // Every two seconds.
-    </script>
 </body>
 </html>
