@@ -1,5 +1,7 @@
 var graphChoice = 'Default';
+var dataDisplay = 'spline';
 var querySelect = document.querySelectorAll('#graphOptions div');
+var querySelect2 = document.querySelectorAll('#displayOptions div');
 var endpoint = "./CityInfo";
 var viewModel;
 var chart;
@@ -11,13 +13,26 @@ for(var i = 0; i < querySelect.length; i++){
 	querySelect[i].addEventListener("click", updateGraphChoice);
 }
 
+for(var i = 0; i < querySelect2.length; i++){
+	querySelect2[i].addEventListener("click", updateGraphChoice2);
+}
+
+
 function updateGraphChoice(e){
 	graphChoice = e.currentTarget.innerHTML;
-	//console.log('before delete', chart.series)
 	chart.destroy();
 	chart = initializeSplineChart(viewModel);
 	updateChart(viewModel, chart);
-	//console.log('after delete', chart.series)
+}
+
+function updateGraphChoice2(e){
+	dataDisplay = e.currentTarget.innerHTML.toLowerCase();
+	if(dataDisplay == 'timeline'){
+	dataDisplay = 'spline'
+}
+	chart.destroy();
+	chart = initializeSplineChart(viewModel);
+	updateChart(viewModel, chart);
 }
 
 function initializeSplineChart() {
@@ -28,7 +43,7 @@ t = "Statistics"
     var c = new Highcharts.Chart({
     chart: {
             renderTo: 'chart',
-            defaultSeriesType: 'spline',
+            defaultSeriesType: dataDisplay,
             events: { }
         },
         title: {
@@ -69,7 +84,7 @@ function addOrUpdateSeries(theChart, seriesName, value, valueName)
         }
     }
 
-    if(!matchFound)
+    if(!matchFound && dataDisplay == 'spline')
     {
         var seriesOptions = {
             id: seriesName,
@@ -78,10 +93,22 @@ function addOrUpdateSeries(theChart, seriesName, value, valueName)
         };
         series = theChart.addSeries(seriesOptions, false);
     }
-    else
+    else if(matchFound && dataDisplay == 'spline')
     {
         var shift = series.data.length > 20;
         series.addPoint(value, true, shift);
+    } else if(!matchFound && dataDisplay == 'column')
+    {
+        var seriesOptions = {
+            id: seriesName,
+            name: seriesName,
+            data: [{ name: valueName, y: value}]
+        };
+        series = theChart.addSeries(seriesOptions, false);
+    }
+    else if(matchFound && dataDisplay == 'column')
+    {
+	series.addPoint(value, true, shift);
     }
 }
 
@@ -90,8 +117,7 @@ function updateChart(vm, chart)
     var updatedSeries = [];
     var districts = vm.Districts();
 
-    var time = formatDate(vm.Time());
-    console.log(time);
+    var dataPointX; 
     var seriesName;
     var dataPoint;
 
@@ -101,41 +127,47 @@ function updateChart(vm, chart)
 	seriesName = district.DistrictName();
 
 	if(graphChoice == "Population"){
-		dataPoint = district.TotalPopulationCount();
+		dataPointY = district.TotalPopulationCount();
 	}
 	if(graphChoice == "Tourists"){
-		dataPoint = district.WeeklyTouristVisits();
+		dataPointY = district.WeeklyTouristVisits();
 	}
 	if(graphChoice == "Households"){
-		dataPoint = district.CurrentHouseholds();
+		dataPointY = district.CurrentHouseholds();
 	}
 	if(graphChoice == "Jobs Occupied"){
-		dataPoint = district.CurrentJobs();
+		dataPointY = district.CurrentJobs();
 	}
 	if(graphChoice == "Household Vacancies"){
-		dataPoint = district.AvailableHouseholds()-district.CurrentHouseholds();
+		dataPointY = district.AvailableHouseholds()-district.CurrentHouseholds();
 	}
 	if(graphChoice == "Job Vacancies"){
-		dataPoint = district.AvailableJobs()-district.CurrentJobs();
+		dataPointY = district.AvailableJobs()-district.CurrentJobs();
 	}
 	if(graphChoice == "Household Fullness"){
-		dataPoint = doMath(district.CurrentHouseholds(), district.AvailableHouseholds());
+		dataPointY = doMath(district.CurrentHouseholds(), district.AvailableHouseholds());
 	}
 	if(graphChoice == "Job Fullness"){
-		dataPoint = doMath(district.CurrentJobs(), district.AvailableJobs());
+		dataPointY = doMath(district.CurrentJobs(), district.AvailableJobs());
 	}
 	if(graphChoice == "Tourist Saturation"){
-		dataPoint = doMath(district.WeeklyTouristVisits(), district.TotalPopulationCount());
+		dataPointY = doMath(district.WeeklyTouristVisits(), district.TotalPopulationCount());
 	}
 	if(graphChoice == "Default"){
 		graphChoice = 'Population';
-		dataPoint = district.TotalPopulationCount();
+		dataPointY = district.TotalPopulationCount();
+	}
+	if(dataDisplay != "spline"){
+		dataPointX = seriesName;
+	}
+	if(dataDisplay == "spline"){
+		dataPointX = formatDate(vm.Time());
 	}
 
 
 	//console.log(dataPoint);
 	seriesName = seriesName + " - " + graphChoice;
-	addOrUpdateSeries(chart, seriesName, dataPoint, time);
+	addOrUpdateSeries(chart, seriesName, dataPointY, dataPointX);
 	
 	
 	
